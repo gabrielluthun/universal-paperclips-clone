@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trombones</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128206;</text></svg>" />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h1>Trombones&nbsp;: <span id="clips">0</span></h1>
+        <button id="btn-make" type="button">Faire un trombone</button>
+      </header>
+
+      <main>
+        <section class="panel" id="panel-business">
+          <h2>Affaires</h2>
+          <div class="row">
+            <span>Fonds</span>
+            <span class="value" id="funds">0,00&nbsp;$</span>
+          </div>
+          <div class="row">
+            <span>Stock invendu</span>
+            <span class="value" id="unsold">0</span>
+          </div>
+          <div class="row">
+            <span>Prix de vente (unité)</span>
+            <span class="value" id="price">0,25&nbsp;$</span>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-manufacturing">
+          <h2>Fabrication</h2>
+          <div class="row">
+            <span>Trombones / s</span>
+            <span class="value" id="clip-rate">0</span>
+          </div>
+          <div class="row">
+            <span>Fil</span>
+            <span class="value" id="wire">0&nbsp;cm</span>
+          </div>
+          <button id="btn-buy-wire" type="button">
+            Acheter une bobine de fil (<span id="wire-cost">20,00&nbsp;$</span>)
+          </button>
+        </section>
+      </main>
+
+      <footer>
+        <span>Sauvegarde automatique locale</span>
+        <button id="btn-reset" type="button">Réinitialiser la partie</button>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
