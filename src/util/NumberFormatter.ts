@@ -8,25 +8,12 @@ export class NumberFormatter {
     maximumFractionDigits: 2,
   });
 
-  private static readonly compactFmt = new Intl.NumberFormat("fr-FR", {
-    notation: "compact",
-    maximumFractionDigits: 2,
-  });
-
-  /** Entiers : notation compacte au-delà d'un million. */
+  /** Entiers en chiffres complets (locale FR). */
   static formatInteger(n: number): string {
-    const abs = Math.abs(n);
-    if (abs >= 1_000_000) {
-      return NumberFormatter.compactFmt.format(Math.floor(n));
-    }
     return NumberFormatter.intFmt.format(Math.floor(n));
   }
 
   static formatMoney(n: number): string {
-    const abs = Math.abs(n);
-    if (abs >= 1_000_000) {
-      return `${NumberFormatter.compactFmt.format(n)} $`;
-    }
     return `${NumberFormatter.moneyFmt.format(n)} $`;
   }
 
