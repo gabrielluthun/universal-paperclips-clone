@@ -244,7 +244,7 @@ export class Renderer {
 
     if (available.length === 0) {
       const empty = document.createElement("p");
-      empty.className = "text-[0.9em] text-muted";
+      empty.className = "col-span-full text-[0.9em] text-muted";
       empty.textContent = "Aucun projet disponible pour l’instant.";
       list.appendChild(empty);
       return;
