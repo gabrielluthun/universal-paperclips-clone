@@ -1,5 +1,5 @@
 export const SAVE_KEY = "jeu-trombone-save";
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 export interface GameState {
   version: number;
@@ -17,8 +17,20 @@ export interface GameState {
   wire: number;
   /** Taille d'une bobine, en centimètres. */
   wirePerSpool: number;
-  /** Prix d'une bobine, en dollars. */
+  /** Prix actuel d'une bobine, en dollars. */
   wireCost: number;
+  /** Prix de référence du fil, autour duquel le cours oscille. */
+  wireBasePrice: number;
+  /** Compteur de fluctuation du cours du fil (phase de la sinusoïde). */
+  wirePriceCounter: number;
+  /** Niveau de marketing (1 = de base). */
+  marketingLvl: number;
+  /** Nombre d'AutoTrombineuses. */
+  autoClippers: number;
+  /** Les AutoTrombineuses ont-elles été débloquées (fonds ≥ 5 $ atteints) ? */
+  autoClippersUnlocked: boolean;
+  /** Accumulateur fractionnaire de production automatique. */
+  autoClipFraction: number;
 }
 
 export function initialState(): GameState {
@@ -27,11 +39,17 @@ export function initialState(): GameState {
     phase: 1,
     clips: 0,
     unsold: 0,
-    funds: 40,
+    funds: 0,
     price: 0.25,
     wire: 1000,
     wirePerSpool: 1000,
     wireCost: 20,
+    wireBasePrice: 20,
+    wirePriceCounter: 0,
+    marketingLvl: 1,
+    autoClippers: 0,
+    autoClippersUnlocked: false,
+    autoClipFraction: 0,
   };
 }
 
