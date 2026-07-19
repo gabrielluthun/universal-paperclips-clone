@@ -1,5 +1,5 @@
 /** Version de la sauvegarde. S'incrémente lorsque des modifications sont apportées à la structure de l'état pour éviter les erreurs de désérialisation. */
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 /** État mutable de la partie — source de vérité pour tous les systèmes. */
 export class GameState {
@@ -40,6 +40,28 @@ export class GameState {
   ops = 0;
   creativity = 0;
   creativityUnlocked = false;
+
+  // --- Investissements (étape 4) ---
+  investmentsUnlocked = false;
+  /** Fonds placés sur les marchés. */
+  investmentFunds = 0;
+  /** Niveau du moteur de trading (1+). */
+  investEngineLevel = 1;
+  /** Risque : 1 = faible, 2 = moyen, 3 = élevé. */
+  investRisk = 1;
+  /** Score Yomi (améliore les rendements). */
+  yomi = 0;
+  /** Dernière variation boursière affichée ($). */
+  lastStockDelta = 0;
+
+  // --- Quantique (étape 4) ---
+  quantumUnlocked = false;
+  /** Puces photoniques. */
+  qChips = 0;
+  /** Calcul quantique en cours (ops oscillantes). */
+  qComputeActive = false;
+  /** Phase de l'oscillation quantique. */
+  qPhase = 0;
 
   private completedProjectIds: string[] = [];
 
