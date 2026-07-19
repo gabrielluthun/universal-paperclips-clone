@@ -9,4 +9,12 @@ describe("NumberFormatter", () => {
   it("formate la monnaie avec deux décimales et le symbole $", () => {
     expect(NumberFormatter.formatMoney(12.5)).toMatch(/^12,50\s\$$/);
   });
+
+  it("utilise une notation compacte pour les très grands nombres", () => {
+    const formatted = NumberFormatter.formatInteger(1_500_000);
+    expect(formatted.toLowerCase()).toMatch(/1[,.]5\s*m/);
+    const money = NumberFormatter.formatMoney(2_000_000);
+    expect(money).toContain("$");
+    expect(money.toLowerCase()).toMatch(/2\s*m/);
+  });
 });

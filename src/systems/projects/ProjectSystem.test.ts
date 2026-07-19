@@ -35,4 +35,20 @@ describe("ProjectSystem", () => {
     expect(projects.activateProject("improvedWireExtrusion")).toBe(false);
     expect(state.hasCompletedProject("improvedWireExtrusion")).toBe(false);
   });
+
+  it("libère les HypnoDrones à 100 de confiance et passe en phase 2", () => {
+    const state = GameState.createInitial();
+    state.trust = 100;
+    const projects = new ProjectSystem(state);
+
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "releaseHypnoDrones",
+    );
+    expect(projects.activateProject("releaseHypnoDrones")).toBe(true);
+    expect(state.phase1Complete).toBe(true);
+    expect(state.phase).toBe(2);
+    expect(state.phase1EndAcknowledged).toBe(false);
+    expect(projects.activateProject("releaseHypnoDrones")).toBe(false);
+  });
 });
+

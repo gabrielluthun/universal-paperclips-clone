@@ -46,7 +46,6 @@ describe("ProductionSystem", () => {
     state.clipperBonus = 1.25;
     state.megaClippers = 2;
     state.megaClipperBonus = 1.5;
-    // 10×1,25 + 2×500×1,5 = 12,5 + 1500 = 1512,5
     expect(production.getAutomaticProductionRate()).toBeCloseTo(1512.5, 5);
   });
 
@@ -68,5 +67,28 @@ describe("ProductionSystem", () => {
     production.update(100);
     expect(state.wire).toBe(1100);
     expect(state.funds).toBe(30);
+  });
+
+  it("offre une bobine d'urgence en cas de soft-lock", () => {
+    const { state, production } = makeProduction();
+    state.wire = 0;
+    state.unsold = 0;
+    state.funds = 5;
+    state.investmentFunds = 0;
+    state.wireCost = 20;
+    state.wirePerSpool = 1000;
+    expect(production.grantEmergencyWireIfSoftLocked()).toBe(true);
+    expect(state.wire).toBe(1000);
+  });
+
+  it("n'offre pas de fil d'urgence s'il reste des liquidités investies", () => {
+    const { state, production } = makeProduction();
+    state.wire = 0;
+    state.unsold = 0;
+    state.funds = 0;
+    state.investmentFunds = 50;
+    state.wireCost = 20;
+    expect(production.grantEmergencyWireIfSoftLocked()).toBe(false);
+    expect(state.wire).toBe(0);
   });
 });
