@@ -88,7 +88,23 @@ export class ProductionSystem extends GameSystem {
     this.purchaseWireSpool();
   }
 
+  /**
+   * Filet anti soft-lock : plus de fil, plus de stock, et liquidités
+   * insuffisantes pour une bobine → bobine d'urgence offerte.
+   */
+  grantEmergencyWireIfSoftLocked(): boolean {
+    const state = this.state;
+    if (state.phase1Complete) return false;
+    const liquid = state.funds + state.investmentFunds;
+    if (state.wire >= 1 || state.unsold >= 1 || liquid >= state.wireCost) {
+      return false;
+    }
+    state.wire += state.wirePerSpool;
+    return true;
+  }
+
   override update(deltaMs: number): void {
+    this.grantEmergencyWireIfSoftLocked();
     this.clipsProducedDuringLastUpdate =
       this.produceClipsAutomatically(deltaMs);
     this.purchaseWireIfStockIsLow();

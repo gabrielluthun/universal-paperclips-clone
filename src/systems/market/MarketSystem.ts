@@ -3,7 +3,8 @@ import { GameSystem } from "../core/GameSystem";
 
 export class MarketSystem extends GameSystem {
   static readonly PRICE_STEP = 0.01;
-  static readonly PRICE_MIN = 0.01;
+  /** Plancher tel qu'une bobine de 1000 cm rembourse le cours plancher du fil (20 $). */
+  static readonly PRICE_MIN = 0.02;
   private static readonly WIRE_FLOOR_PRICE = 20;
 
   private revenueEarnedDuringLastUpdate = 0;
