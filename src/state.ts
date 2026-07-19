@@ -1,5 +1,5 @@
 export const SAVE_KEY = "jeu-trombone-save";
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 export interface GameState {
   version: number;
@@ -25,12 +25,45 @@ export interface GameState {
   wirePriceCounter: number;
   /** Niveau de marketing (1 = de base). */
   marketingLvl: number;
+  /** Multiplicateur d'efficacité marketing (projets). */
+  marketingEffectiveness: number;
   /** Nombre d'AutoTrombineuses. */
   autoClippers: number;
   /** Les AutoTrombineuses ont-elles été débloquées (fonds ≥ 5 $ atteints) ? */
   autoClippersUnlocked: boolean;
+  /** Multiplicateur de production des AutoTrombineuses. */
+  clipperBonus: number;
   /** Accumulateur fractionnaire de production automatique. */
   autoClipFraction: number;
+  /** Nombre de MégaTrombineuses. */
+  megaClippers: number;
+  /** Les MégaTrombineuses sont-elles débloquées (projet) ? */
+  megaClippersUnlocked: boolean;
+  /** Multiplicateur de production des MégaTrombineuses. */
+  megaClipperBonus: number;
+  /** Achat automatique de fil quand le stock est bas. */
+  autoWire: boolean;
+
+  // --- Confiance / calcul ---
+  /** Confiance totale gagnée (paliers de production). */
+  trust: number;
+  /** Prochain seuil de trombones pour +1 confiance. */
+  nextTrust: number;
+  /** Suite de Fibonacci (terme a) pour les paliers. */
+  trustFibA: number;
+  /** Suite de Fibonacci (terme b) pour les paliers. */
+  trustFibB: number;
+  processors: number;
+  memory: number;
+  /** Opérations de calcul actuelles. */
+  ops: number;
+  /** Créativité (générée quand les ops sont au maximum). */
+  creativity: number;
+  /** La créativité a-t-elle déjà été débloquée une fois ? */
+  creativityUnlocked: boolean;
+
+  /** Identifiants des projets déjà réalisés. */
+  completedProjects: string[];
 }
 
 export function initialState(): GameState {
@@ -47,9 +80,27 @@ export function initialState(): GameState {
     wireBasePrice: 20,
     wirePriceCounter: 0,
     marketingLvl: 1,
+    marketingEffectiveness: 1,
     autoClippers: 0,
     autoClippersUnlocked: false,
+    clipperBonus: 1,
     autoClipFraction: 0,
+    megaClippers: 0,
+    megaClippersUnlocked: false,
+    megaClipperBonus: 1,
+    autoWire: false,
+
+    trust: 2,
+    nextTrust: 3000,
+    trustFibA: 2,
+    trustFibB: 3,
+    processors: 1,
+    memory: 1,
+    ops: 0,
+    creativity: 0,
+    creativityUnlocked: false,
+
+    completedProjects: [],
   };
 }
 
@@ -62,7 +113,11 @@ export function load(): GameState {
     if (parsed.version !== SAVE_VERSION) return fresh;
     // Fusion sur l'état initial : les champs ajoutés dans une version
     // ultérieure du code gardent leur valeur par défaut.
-    return { ...fresh, ...parsed };
+    return {
+      ...fresh,
+      ...parsed,
+      completedProjects: parsed.completedProjects ?? [],
+    };
   } catch {
     return fresh;
   }
