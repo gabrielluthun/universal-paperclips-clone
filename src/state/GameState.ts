@@ -7,7 +7,7 @@ export class GameState {
   /** Phase du jeu (1 : business, 2 : Terre, 3 : espace). */
   phase = 1;
 
-  clips = 1;
+  clips = 0;
   unsold = 0;
   funds = 0;
   price = 0.25;
