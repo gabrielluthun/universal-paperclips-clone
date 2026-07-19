@@ -26,16 +26,15 @@ npm install
 | `npm run preview` | Prévisualiser le build |
 | `npm test` | Tests unitaires (Vitest) |
 | `npm run test:watch` | Tests en mode watch |
-| `npx vitest run --coverage` | Couverture de code |
+| `npm run test:coverage` | Couverture de code |
 
-## Jouer
+## Jouer en local
 
 ```bash
 npm run dev
 ```
 
-Ouvrir l’URL affichée (souvent `http://localhost:5173`). 
-La progression est sauvegardée automatiquement dans `localStorage`.
+Ouvrir l’URL affichée (souvent `http://localhost:5173`).
 
 ## Architecture
 
@@ -54,6 +53,10 @@ src/
   ui/Renderer.ts
   util/NumberFormatter.ts
 ```
+
+## Déploiement
+
+Le site est publié sur GitHub Pages via [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) 
 
 ## Licence
 
