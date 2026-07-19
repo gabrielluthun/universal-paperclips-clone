@@ -22,13 +22,29 @@
             <span class="value" id="funds">0,00&nbsp;$</span>
           </div>
           <div class="row">
+            <span>Revenus moy. / s</span>
+            <span class="value" id="avg-rev">0,00&nbsp;$</span>
+          </div>
+          <div class="row">
             <span>Stock invendu</span>
             <span class="value" id="unsold">0</span>
           </div>
           <div class="row">
             <span>Prix de vente (unité)</span>
-            <span class="value" id="price">0,25&nbsp;$</span>
+            <span class="price-controls">
+              <button id="btn-price-down" type="button" title="Baisser le prix">−</button>
+              <span class="value" id="price">0,25&nbsp;$</span>
+              <button id="btn-price-up" type="button" title="Augmenter le prix">+</button>
+            </span>
           </div>
+          <div class="row">
+            <span>Demande du public</span>
+            <span class="value" id="demand">0&nbsp;%</span>
+          </div>
+          <button id="btn-marketing" type="button">
+            Marketing (niv. <span id="marketing-lvl">1</span>) —
+            <span id="marketing-cost">100,00&nbsp;$</span>
+          </button>
         </section>
 
         <section class="panel" id="panel-manufacturing">
@@ -44,6 +60,15 @@
           <button id="btn-buy-wire" type="button">
             Acheter une bobine de fil (<span id="wire-cost">20,00&nbsp;$</span>)
           </button>
+          <div id="autoclipper-block" hidden>
+            <div class="row">
+              <span>AutoTrombineuses</span>
+              <span class="value" id="autoclippers">0</span>
+            </div>
+            <button id="btn-buy-autoclipper" type="button">
+              Acheter une AutoTrombineuse (<span id="autoclipper-cost">6,00&nbsp;$</span>)
+            </button>
+          </div>
         </section>
       </main>
 
