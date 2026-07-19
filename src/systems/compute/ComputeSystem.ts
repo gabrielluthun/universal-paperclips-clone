@@ -56,6 +56,9 @@ export class ComputeSystem extends GameSystem {
   /** Génère opérations puis, au plafond, créativité. */
   override update(deltaMs: number): void {
     const s = this.state;
+    // Pendant le calcul quantique, les ops sont pilotées par QuantumSystem.
+    if (s.qComputeActive) return;
+
     const capacity = this.getOperationsCapacity();
     const dt = deltaMs / 1000;
     s.ops = Math.min(capacity, s.ops + this.getOperationsPerSecond() * dt);
