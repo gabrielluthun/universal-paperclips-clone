@@ -1,7 +1,9 @@
 import type { GameState } from "../state/GameState";
 import type { ComputeSystem } from "../systems/compute/ComputeSystem";
+import type { InvestmentSystem } from "../systems/invest/InvestmentSystem";
 import type { ProductionSystem } from "../systems/production/ProductionSystem";
 import type { ProjectSystem } from "../systems/projects/ProjectSystem";
+import type { QuantumSystem } from "../systems/quantum/QuantumSystem";
 import { MarketSystem } from "../systems/market/MarketSystem";
 import { NumberFormatter } from "../util/NumberFormatter";
 
@@ -12,6 +14,8 @@ export interface RenderModel {
   readonly market: MarketSystem;
   readonly compute: ComputeSystem;
   readonly projects: ProjectSystem;
+  readonly investments: InvestmentSystem;
+  readonly quantum: QuantumSystem;
   readonly clipRate: number;
   readonly avgRev: number;
   activateProject(id: string): void;
@@ -22,6 +26,12 @@ function requireElement<T extends HTMLElement>(id: string): T {
   if (!node) throw new Error(`Élément introuvable : #${id}`);
   return node as T;
 }
+
+const RISK_LABELS: Record<number, string> = {
+  1: "Faible",
+  2: "Moyen",
+  3: "Élevé",
+};
 
 export class Renderer {
   private lastProjectsSignature = "";
@@ -54,6 +64,24 @@ export class Renderer {
     creativity: () => requireElement<HTMLSpanElement>("creativity"),
     creativityRow: () => requireElement<HTMLDivElement>("creativity-row"),
     projectsList: () => requireElement<HTMLDivElement>("projects-list"),
+    panelInvestments: () => requireElement<HTMLElement>("panel-investments"),
+    investFunds: () => requireElement<HTMLSpanElement>("invest-funds"),
+    investDelta: () => requireElement<HTMLSpanElement>("invest-delta"),
+    investEngine: () => requireElement<HTMLSpanElement>("invest-engine"),
+    yomi: () => requireElement<HTMLSpanElement>("yomi"),
+    investRisk: () => requireElement<HTMLSpanElement>("invest-risk"),
+    btnRiskLow: () => requireElement<HTMLButtonElement>("btn-risk-low"),
+    btnRiskMed: () => requireElement<HTMLButtonElement>("btn-risk-med"),
+    btnRiskHigh: () => requireElement<HTMLButtonElement>("btn-risk-high"),
+    btnInvestDeposit: () =>
+      requireElement<HTMLButtonElement>("btn-invest-deposit"),
+    btnInvestWithdraw: () =>
+      requireElement<HTMLButtonElement>("btn-invest-withdraw"),
+    panelQuantum: () => requireElement<HTMLElement>("panel-quantum"),
+    qChips: () => requireElement<HTMLSpanElement>("qchips"),
+    qChipCost: () => requireElement<HTMLSpanElement>("qchip-cost"),
+    btnBuyQChip: () => requireElement<HTMLButtonElement>("btn-buy-qchip"),
+    btnQCompute: () => requireElement<HTMLButtonElement>("btn-qcompute"),
     btnMake: () => requireElement<HTMLButtonElement>("btn-make"),
     btnBuyWire: () => requireElement<HTMLButtonElement>("btn-buy-wire"),
     btnPriceDown: () => requireElement<HTMLButtonElement>("btn-price-down"),
@@ -69,7 +97,7 @@ export class Renderer {
   };
 
   render(model: RenderModel): void {
-    const { state, production, market, compute } = model;
+    const { state, production, market, compute, quantum } = model;
     const dom = this.dom;
 
     dom.clips().textContent = NumberFormatter.formatInteger(state.clips);
@@ -110,6 +138,9 @@ export class Renderer {
     dom.megaClipperBlock().hidden = !state.megaClippersUnlocked;
     dom.creativityRow().hidden = !state.creativityUnlocked;
 
+    this.renderInvestments(model);
+    this.renderQuantum(model);
+
     dom.btnMake().disabled = state.wire < 1;
     dom.btnBuyWire().disabled = state.funds < state.wireCost;
     dom.btnPriceDown().disabled = state.price <= MarketSystem.PRICE_MIN;
@@ -121,8 +152,53 @@ export class Renderer {
       state.funds < production.getNextMegaClipperCost();
     dom.btnAddProcessor().disabled = availableTrust < 1;
     dom.btnAddMemory().disabled = availableTrust < 1;
+    dom.btnBuyQChip().disabled =
+      !state.quantumUnlocked ||
+      state.ops < quantum.getNextPhotonicChipCost();
+    dom.btnQCompute().disabled =
+      !state.quantumUnlocked || state.qChips < 1;
 
     this.renderProjectCards(model);
+  }
+
+  private renderInvestments(model: RenderModel): void {
+    const { state } = model;
+    const dom = this.dom;
+    dom.panelInvestments().hidden = !state.investmentsUnlocked;
+    if (!state.investmentsUnlocked) return;
+
+    dom.investFunds().textContent = NumberFormatter.formatMoney(
+      state.investmentFunds,
+    );
+    const delta = state.lastStockDelta;
+    const sign = delta > 0 ? "+" : "";
+    dom.investDelta().textContent = `${sign}${NumberFormatter.formatMoney(delta)}`;
+    dom.investEngine().textContent = NumberFormatter.formatInteger(
+      state.investEngineLevel,
+    );
+    dom.yomi().textContent = NumberFormatter.formatInteger(state.yomi);
+    dom.investRisk().textContent = RISK_LABELS[state.investRisk] ?? "—";
+
+    dom.btnRiskLow().disabled = state.investRisk === 1;
+    dom.btnRiskMed().disabled = state.investRisk === 2;
+    dom.btnRiskHigh().disabled = state.investRisk === 3;
+    dom.btnInvestDeposit().disabled = state.funds <= 0;
+    dom.btnInvestWithdraw().disabled = state.investmentFunds <= 0;
+  }
+
+  private renderQuantum(model: RenderModel): void {
+    const { state, quantum } = model;
+    const dom = this.dom;
+    dom.panelQuantum().hidden = !state.quantumUnlocked;
+    if (!state.quantumUnlocked) return;
+
+    dom.qChips().textContent = NumberFormatter.formatInteger(state.qChips);
+    dom.qChipCost().textContent = NumberFormatter.formatInteger(
+      quantum.getNextPhotonicChipCost(),
+    );
+    dom.btnQCompute().textContent = state.qComputeActive
+      ? "Arrêter le calcul (figer les ops)"
+      : "Calcul quantique";
   }
 
   private renderProjectCards(model: RenderModel): void {

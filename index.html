@@ -153,6 +153,58 @@
           </div>
         </section>
 
+        <section class="panel" id="panel-investments" hidden>
+          <h2>Investissements</h2>
+          <div class="row">
+            <span>Portefeuille</span>
+            <span class="value" id="invest-funds">0,00&nbsp;$</span>
+          </div>
+          <div class="row">
+            <span>Dernière variation</span>
+            <span class="value" id="invest-delta">0,00&nbsp;$</span>
+          </div>
+          <div class="row">
+            <span>Moteur (niv.)</span>
+            <span class="value" id="invest-engine">1</span>
+          </div>
+          <div class="row">
+            <span>Yomi</span>
+            <span class="value" id="yomi">0</span>
+          </div>
+          <div class="row">
+            <span>Risque</span>
+            <span class="price-controls" id="risk-controls">
+              <button id="btn-risk-low" type="button" title="Risque faible">F</button>
+              <button id="btn-risk-med" type="button" title="Risque moyen">M</button>
+              <button id="btn-risk-high" type="button" title="Risque élevé">É</button>
+            </span>
+          </div>
+          <div class="row">
+            <span>Niveau de risque</span>
+            <span class="value" id="invest-risk">Faible</span>
+          </div>
+          <button id="btn-invest-deposit" type="button">Tout déposer</button>
+          <button id="btn-invest-withdraw" type="button">Tout retirer</button>
+        </section>
+
+        <section class="panel" id="panel-quantum" hidden>
+          <h2>Informatique quantique</h2>
+          <div class="row">
+            <span>Puces photoniques</span>
+            <span class="value" id="qchips">0</span>
+          </div>
+          <button id="btn-buy-qchip" type="button">
+            Acheter une puce (<span id="qchip-cost">10&nbsp;000</span> ops)
+          </button>
+          <button id="btn-qcompute" type="button">
+            Calcul quantique
+          </button>
+          <p class="mt-2 text-[0.9em] text-muted" id="qcompute-hint">
+            Achetez au moins une puce, puis lancez le calcul : les ops oscillent.
+            Cliquez à nouveau pour figer la valeur.
+          </p>
+        </section>
+
         <section class="panel" id="panel-projects">
           <h2>Projets</h2>
           <div id="projects-list" class="flex flex-col gap-2">

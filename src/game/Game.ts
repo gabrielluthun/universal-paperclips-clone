@@ -2,9 +2,11 @@ import { GameState } from "../state/GameState";
 import { SaveManager } from "../state/SaveManager";
 import { ComputeSystem } from "../systems/compute/ComputeSystem";
 import type { GameSystem } from "../systems/core/GameSystem";
+import { InvestmentSystem } from "../systems/invest/InvestmentSystem";
 import { MarketSystem } from "../systems/market/MarketSystem";
 import { ProductionSystem } from "../systems/production/ProductionSystem";
 import { ProjectSystem } from "../systems/projects/ProjectSystem";
+import { QuantumSystem } from "../systems/quantum/QuantumSystem";
 import { Renderer } from "../ui/Renderer";
 
 const TICK_MS = 100;
@@ -19,6 +21,8 @@ export class Game {
   readonly production: ProductionSystem;
   readonly market: MarketSystem;
   readonly projects: ProjectSystem;
+  readonly investments: InvestmentSystem;
+  readonly quantum: QuantumSystem;
 
   private readonly simulationSystems: GameSystem[];
   private readonly saveManager = new SaveManager();
@@ -59,7 +63,15 @@ export class Game {
     this.production = new ProductionSystem(this.state, this.compute);
     this.market = new MarketSystem(this.state);
     this.projects = new ProjectSystem(this.state);
-    this.simulationSystems = [this.production, this.market, this.compute];
+    this.investments = new InvestmentSystem(this.state);
+    this.quantum = new QuantumSystem(this.state);
+    this.simulationSystems = [
+      this.production,
+      this.market,
+      this.compute,
+      this.investments,
+      this.quantum,
+    ];
   }
 
   start(): void {
@@ -155,6 +167,30 @@ export class Game {
       this.compute.allocateProcessor(),
     );
     this.bindButtonClick("btn-add-memory", () => this.compute.allocateMemory());
+
+    this.bindButtonClick("btn-invest-deposit", () =>
+      this.investments.depositAll(),
+    );
+    this.bindButtonClick("btn-invest-withdraw", () =>
+      this.investments.withdrawAll(),
+    );
+    this.bindButtonClick("btn-risk-low", () =>
+      this.investments.setRiskLevel(1),
+    );
+    this.bindButtonClick("btn-risk-med", () =>
+      this.investments.setRiskLevel(2),
+    );
+    this.bindButtonClick("btn-risk-high", () =>
+      this.investments.setRiskLevel(3),
+    );
+
+    this.bindButtonClick("btn-buy-qchip", () =>
+      this.quantum.purchasePhotonicChip(),
+    );
+    this.bindButtonClick("btn-qcompute", () =>
+      this.quantum.toggleQuantumCompute(),
+    );
+
     this.bindButtonClick("btn-reset", () => this.resetGame());
   }
 
