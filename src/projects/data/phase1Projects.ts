@@ -276,5 +276,17 @@ export function createPhase1Projects(): Project[] {
         s.quantumUnlocked = true;
       },
     ),
+    new ConfigurableProject(
+      "releaseHypnoDrones",
+      "Libérer les HypnoDrones",
+      "Clôt la phase 1 et ouvre la voie à la phase 2 (Terre). Nécessite 100 de confiance.",
+      ProjectCost.of({}),
+      (s) => s.trust >= 100 && s.phase === 1 && !s.phase1Complete,
+      (s) => {
+        s.phase1Complete = true;
+        s.phase = 2;
+        s.phase1EndAcknowledged = false;
+      },
+    ),
   ];
 }

@@ -19,6 +19,7 @@ export interface RenderModel {
   readonly clipRate: number;
   readonly avgRev: number;
   activateProject(id: string): void;
+  acknowledgePhase1End(): void;
 }
 
 function requireElement<T extends HTMLElement>(id: string): T {
@@ -94,11 +95,16 @@ export class Renderer {
     btnAddProcessor: () =>
       requireElement<HTMLButtonElement>("btn-add-processor"),
     btnAddMemory: () => requireElement<HTMLButtonElement>("btn-add-memory"),
+    phase1EndOverlay: () => requireElement<HTMLElement>("phase1-end-overlay"),
+    phase1EndClips: () => requireElement<HTMLSpanElement>("phase1-end-clips"),
+    phase2Banner: () => requireElement<HTMLElement>("phase2-banner"),
   };
 
   render(model: RenderModel): void {
     const { state, production, market, compute, quantum } = model;
     const dom = this.dom;
+
+    this.renderPhase1End(model);
 
     dom.clips().textContent = NumberFormatter.formatInteger(state.clips);
     dom.funds().textContent = NumberFormatter.formatMoney(state.funds);
@@ -159,6 +165,21 @@ export class Renderer {
       !state.quantumUnlocked || state.qChips < 1;
 
     this.renderProjectCards(model);
+  }
+
+  private renderPhase1End(model: RenderModel): void {
+    const { state } = model;
+    const showOverlay =
+      state.phase1Complete && !state.phase1EndAcknowledged;
+    this.dom.phase1EndOverlay().hidden = !showOverlay;
+    if (showOverlay) {
+      this.dom.phase1EndClips().textContent = NumberFormatter.formatInteger(
+        state.clips,
+      );
+    }
+    this.dom.phase2Banner().hidden = !(
+      state.phase1Complete && state.phase1EndAcknowledged
+    );
   }
 
   private renderInvestments(model: RenderModel): void {

@@ -89,6 +89,10 @@ export class Game {
     this.projects.activateProject(id);
   }
 
+  acknowledgePhase1End(): void {
+    this.state.phase1EndAcknowledged = true;
+  }
+
   private readonly handlePageUnload = (): void => {
     if (!this.isResetting) this.saveManager.saveGame(this.state);
   };
@@ -189,6 +193,10 @@ export class Game {
     );
     this.bindButtonClick("btn-qcompute", () =>
       this.quantum.toggleQuantumCompute(),
+    );
+
+    this.bindButtonClick("btn-dismiss-phase1-end", () =>
+      this.acknowledgePhase1End(),
     );
 
     this.bindButtonClick("btn-reset", () => this.resetGame());

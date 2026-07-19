@@ -8,7 +8,37 @@
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
+    <div
+      id="phase1-end-overlay"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-ink/55 p-4"
+      hidden
+    >
+      <div class="max-w-lg rounded-md border border-line bg-card p-6 shadow-lg">
+        <h2 class="mb-3 text-xl font-semibold">Phase 1 terminée</h2>
+        <p class="mb-2 text-[15px] text-ink">
+          Les HypnoDrones sont libérés. L’humanité bascule, la
+          <strong>phase 2</strong> commence.
+        </p>
+        <p class="mb-4 text-[0.9em] text-muted">
+          Trombones fabriqués :
+          <span id="phase1-end-clips" class="tabular-nums font-semibold text-ink"
+            >0</span
+          >
+        </p>
+        <button id="btn-dismiss-phase1-end" type="button" class="w-full">
+          Continuer
+        </button>
+      </div>
+    </div>
+
     <div id="app" class="mx-auto max-w-[1100px] p-4">
+      <p
+        id="phase2-banner"
+        class="mb-3 rounded border border-line bg-project px-3 py-2 text-[0.9em] text-muted"
+        hidden
+      >
+        Phase 1 close — teaser phase 2 (drones / usines terrestres) à venir.
+      </p>
       <header>
         <h1 class="my-2 mb-2.5 text-[28px] font-semibold tabular-nums">
           Trombones&nbsp;: <span id="clips">0</span>

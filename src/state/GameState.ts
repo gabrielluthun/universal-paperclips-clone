@@ -1,11 +1,15 @@
 /** Version de la sauvegarde. S'incrémente lorsque des modifications sont apportées à la structure de l'état pour éviter les erreurs de désérialisation. */
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 /** État mutable de la partie — source de vérité pour tous les systèmes. */
 export class GameState {
   version = SAVE_VERSION;
   /** Phase du jeu (1 : business, 2 : Terre, 3 : espace). */
   phase = 1;
+  /** Phase 1 close via HypnoDrones. */
+  phase1Complete = false;
+  /** L'écran de transition de fin de phase 1 a été fermé. */
+  phase1EndAcknowledged = false;
 
   clips = 0;
   unsold = 0;
