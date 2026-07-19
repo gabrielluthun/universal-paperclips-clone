@@ -16,7 +16,7 @@ function round2(n: number): number {
  */
 export function computeDemand(state: GameState): number {
   const marketing = Math.pow(1.1, state.marketingLvl - 1);
-  return (0.8 / state.price) * marketing;
+  return (0.8 / state.price) * marketing * state.marketingEffectiveness;
 }
 
 export function marketingCost(state: GameState): number {
