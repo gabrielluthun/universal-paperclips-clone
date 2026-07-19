@@ -3,7 +3,9 @@ import {
   makeClips,
   buyWire,
   buyAutoClipper,
+  buyMegaClipper,
   autoProductionTick,
+  autoWireTick,
 } from "./systems/production";
 import {
   sellTick,
@@ -12,6 +14,8 @@ import {
   lowerPrice,
   buyMarketing,
 } from "./systems/market";
+import { computeTick, addProcessor, addMemory } from "./systems/compute";
+import { activateProject } from "./systems/projects";
 import { render } from "./ui/render";
 
 const TICK_MS = 100; // logique à 10 Hz
@@ -33,6 +37,8 @@ function tick(dtMs: number): void {
   clipsMadeThisSecond += autoProductionTick(state, dtMs);
   revenueThisSecond += sellTick(state, dtMs);
   wireMarketTick(state);
+  autoWireTick(state);
+  computeTick(state, dtMs);
 
   if (!state.autoClippersUnlocked && state.funds >= AUTOCLIPPER_UNLOCK_FUNDS) {
     state.autoClippersUnlocked = true;
@@ -53,6 +59,10 @@ function closeStatsWindow(): void {
 let lastTime = performance.now();
 let accumulator = 0;
 
+function onActivateProject(id: string): void {
+  activateProject(state, id);
+}
+
 function frame(now: number): void {
   accumulator += now - lastTime;
   lastTime = now;
@@ -70,7 +80,7 @@ function frame(now: number): void {
     }
   }
 
-  render(state, { clipRate, avgRev });
+  render(state, { clipRate, avgRev, onActivateProject });
   requestAnimationFrame(frame);
 }
 
@@ -87,6 +97,9 @@ on("btn-price-up", () => raisePrice(state));
 on("btn-price-down", () => lowerPrice(state));
 on("btn-marketing", () => buyMarketing(state));
 on("btn-buy-autoclipper", () => buyAutoClipper(state));
+on("btn-buy-megaclipper", () => buyMegaClipper(state));
+on("btn-add-processor", () => addProcessor(state));
+on("btn-add-memory", () => addMemory(state));
 
 let resetting = false;
 on("btn-reset", () => {

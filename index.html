@@ -69,6 +69,59 @@
               Acheter une AutoTrombineuse (<span id="autoclipper-cost">6,00&nbsp;$</span>)
             </button>
           </div>
+          <div id="megaclipper-block" hidden>
+            <div class="row">
+              <span>MégaTrombineuses</span>
+              <span class="value" id="megaclippers">0</span>
+            </div>
+            <button id="btn-buy-megaclipper" type="button">
+              Acheter une MégaTrombineuse (<span id="megaclipper-cost">1&nbsp;000,00&nbsp;$</span>)
+            </button>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-compute">
+          <h2>Ressources de calcul</h2>
+          <div class="row">
+            <span>Confiance</span>
+            <span class="value">
+              <span id="trust">2</span>
+              <span class="muted">(dispo. <span id="trust-unused">0</span>)</span>
+            </span>
+          </div>
+          <div class="row">
+            <span>Prochain palier</span>
+            <span class="value" id="next-trust">3&nbsp;000</span>
+          </div>
+          <div class="row">
+            <span>Processeurs</span>
+            <span class="value">
+              <span id="processors">1</span>
+              <button id="btn-add-processor" type="button" class="btn-inline" title="Allouer 1 confiance">+</button>
+            </span>
+          </div>
+          <div class="row">
+            <span>Mémoire</span>
+            <span class="value">
+              <span id="memory">1</span>
+              <button id="btn-add-memory" type="button" class="btn-inline" title="Allouer 1 confiance">+</button>
+            </span>
+          </div>
+          <div class="row">
+            <span>Opérations</span>
+            <span class="value"><span id="ops">0</span> / <span id="ops-max">1&nbsp;000</span></span>
+          </div>
+          <div class="row" id="creativity-row" hidden>
+            <span>Créativité</span>
+            <span class="value" id="creativity">0</span>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-projects">
+          <h2>Projets</h2>
+          <div id="projects-list" class="projects-list">
+            <p class="muted" id="projects-empty">Aucun projet disponible pour l’instant.</p>
+          </div>
         </section>
       </main>
 
