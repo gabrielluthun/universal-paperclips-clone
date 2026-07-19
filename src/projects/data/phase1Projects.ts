@@ -8,7 +8,7 @@ function done(state: GameState, id: string): boolean {
 }
 
 /**
- * Projets de phase 1 (hors bourse, quantique et HypnoDrones — étapes 4/5).
+ * Projets de phase 1 (HypnoDrones = étape 5).
  */
 export function createPhase1Projects(): Project[] {
   return [
@@ -231,6 +231,49 @@ export function createPhase1Projects(): Project[] {
         done(s, "theHadwigerProblem") && done(s, "hadwigerClipDiagrams"),
       (s) => {
         s.trust += 1;
+      },
+    ),
+    new ConfigurableProject(
+      "strategicModeling",
+      "Modélisation stratégique",
+      "Débloque les investissements boursiers (+1 Yomi).",
+      ProjectCost.of({ creativity: 1000 }),
+      (s) => s.creativityUnlocked && s.funds >= 1000,
+      (s) => {
+        s.investmentsUnlocked = true;
+        s.yomi += 1;
+      },
+    ),
+    new ConfigurableProject(
+      "algorithmicTrading",
+      "Trading algorithmique",
+      "Améliore le moteur d'investissement (+1 niveau, +1 Yomi).",
+      ProjectCost.of({ ops: 5000 }),
+      (s) => s.investmentsUnlocked,
+      (s) => {
+        s.investEngineLevel += 1;
+        s.yomi += 1;
+      },
+    ),
+    new ConfigurableProject(
+      "dualNagleAlgorithm",
+      "Algorithme Dual Nagle",
+      "Améliore encore le moteur d'investissement (+1 niveau, +1 Yomi).",
+      ProjectCost.of({ ops: 10_000 }),
+      (s) => done(s, "algorithmicTrading"),
+      (s) => {
+        s.investEngineLevel += 1;
+        s.yomi += 1;
+      },
+    ),
+    new ConfigurableProject(
+      "quantumComputing",
+      "Informatique quantique",
+      "Débloque le calcul quantique et les puces photoniques.",
+      ProjectCost.of({ ops: 10_000 }),
+      (s) => s.creativityUnlocked && s.memory >= 10,
+      (s) => {
+        s.quantumUnlocked = true;
       },
     ),
   ];
