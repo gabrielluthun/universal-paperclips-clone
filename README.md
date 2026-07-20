@@ -56,7 +56,11 @@ src/
 
 ## Déploiement
 
-Le site est publié sur GitHub Pages via [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) 
+Le site est publié sur GitHub Pages via [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) :
+
+- push sur `develop` (ou lancement manuel du workflow)
+- source Pages = **GitHub Actions**
+- `base` Vite = `/universal-paperclips-clone/` dans `vite.config.ts`
 
 ## Licence
 
