@@ -55,20 +55,47 @@ describe("ComputeSystem", () => {
     expect(state.memory).toBe(2);
   });
 
+  it("calcule les ops/s à 10 × processeurs", () => {
+    const state = GameState.createInitial();
+    const compute = new ComputeSystem(state);
+
+    state.processors = 1;
+    expect(compute.getOperationsPerSecond()).toBe(10);
+    state.processors = 5;
+    expect(compute.getOperationsPerSecond()).toBe(50);
+    state.processors = 10;
+    expect(compute.getOperationsPerSecond()).toBe(100);
+  });
+
+  it("calcule la créativité selon la formule Paperclips", () => {
+    const state = GameState.createInitial();
+    state.creativityUnlocked = true;
+    const compute = new ComputeSystem(state);
+
+    state.processors = 1;
+    expect(compute.getCreativityPerSecond()).toBe(0);
+
+    state.processors = 2;
+    expect(compute.getCreativityPerSecond()).toBeCloseTo(
+      Math.log10(2) * Math.pow(2, 1.1) + 1,
+      10,
+    );
+  });
+
   it("génère des ops puis débloque la créativité au plafond", () => {
     const state = GameState.createInitial();
-    state.processors = 1;
+    state.processors = 2;
     state.memory = 1;
     const compute = new ComputeSystem(state);
 
-    // 2 secondes à ~1 ops/s → ~2 ops, pas encore au max
-    compute.update(2000);
-    expect(state.ops).toBeGreaterThan(0);
+    // 1 seconde à 20 ops/s → 20 ops, pas encore au max
+    compute.update(1000);
+    expect(state.ops).toBeCloseTo(20, 5);
     expect(state.ops).toBeLessThan(1000);
     expect(state.creativityUnlocked).toBe(false);
 
     state.ops = 999;
-    compute.update(2000);
+    compute.update(1000);
     expect(state.ops).toBe(1000);
     expect(state.creativityUnlocked).toBe(true);
     expect(state.creativity).toBeGreaterThan(0);

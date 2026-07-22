@@ -44,12 +44,18 @@ export class StrategicPanel {
   render(model: RenderModel): void {
     const { state, strategic } = model;
     this.panel.hidden = !state.strategicModelingUnlocked;
-    if (!state.strategicModelingUnlocked) return;
 
+    // Toujours formater les compteurs fixes (slots de lissage stables).
     this.yomi.textContent = NumberFormatter.formatInteger(state.yomi);
     this.tourneyCost.textContent = NumberFormatter.formatInteger(
       strategic.getTourneyCost(),
     );
+    this.tourneyYomiGained.textContent = NumberFormatter.formatInteger(
+      state.lastTourneyYomiGained,
+    );
+
+    if (!state.strategicModelingUnlocked) return;
+
     this.btnRunTourney.disabled = !strategic.canRunTournament();
 
     const unlocked = strategic.getUnlockedStrategies();
@@ -87,13 +93,10 @@ export class StrategicPanel {
     const hasResults = state.tourneyResults.length > 0;
     this.tourneyResults.hidden = !hasResults;
     if (hasResults) {
-      this.tourneyYomiGained.textContent = NumberFormatter.formatInteger(
-        state.lastTourneyYomiGained,
-      );
       this.tourneyResultsList.replaceChildren();
       for (const row of state.tourneyResults) {
         const li = document.createElement("li");
-        li.textContent = `${row.name} : ${NumberFormatter.formatInteger(row.score)}`;
+        li.textContent = `${row.name} : ${NumberFormatter.formatIntegerExact(row.score)}`;
         if (row.id === state.selectedStrategyId) li.className = "picked";
         this.tourneyResultsList.appendChild(li);
       }

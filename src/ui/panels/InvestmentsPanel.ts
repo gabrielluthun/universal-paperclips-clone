@@ -36,8 +36,8 @@ export class InvestmentsPanel {
   render(model: RenderModel): void {
     const { state, investments } = model;
     this.panel.hidden = !state.investmentsUnlocked;
-    if (!state.investmentsUnlocked) return;
 
+    // Toujours formater les compteurs (slots de lissage stables).
     this.investFunds.textContent = NumberFormatter.formatMoney(
       state.investmentFunds,
     );
@@ -52,6 +52,8 @@ export class InvestmentsPanel {
     const upgradeCost = investments.getNextEngineUpgradeCost();
     this.investUpgradeCost.textContent =
       NumberFormatter.formatInteger(upgradeCost);
+
+    if (!state.investmentsUnlocked) return;
 
     this.btnRiskLow.disabled = state.investRisk === 1;
     this.btnRiskMed.disabled = state.investRisk === 2;

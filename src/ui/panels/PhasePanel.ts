@@ -11,9 +11,8 @@ export class PhasePanel {
     const { state } = model;
     const showOverlay = state.phase1Complete && !state.phase1EndAcknowledged;
     this.overlay.hidden = !showOverlay;
-    if (showOverlay) {
-      this.endClips.textContent = NumberFormatter.formatInteger(state.clips);
-    }
+    // Toujours formater pour garder un ordre de slots de lissage stable.
+    this.endClips.textContent = NumberFormatter.formatInteger(state.clips);
     this.banner.hidden = !(
       state.phase1Complete && state.phase1EndAcknowledged
     );

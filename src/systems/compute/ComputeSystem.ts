@@ -43,14 +43,19 @@ export class ComputeSystem extends GameSystem {
     return true;
   }
 
-  /** Ops / s ≈ processeurs^1,1 (formule de l'original). */
+  /** Ops / s = 10 × processeurs`. */
   getOperationsPerSecond(): number {
-    return Math.pow(this.state.processors, 1.1);
+    return this.state.processors * 10;
   }
 
+  /**
+   * Créativité / s :
+   * log10(processeurs) × processeurs^1,1 + processeurs − 1.
+   */
   getCreativityPerSecond(): number {
     if (!this.state.creativityUnlocked) return 0;
-    return Math.pow(this.state.processors, 1.1);
+    const p = this.state.processors;
+    return Math.log10(p) * Math.pow(p, 1.1) + p - 1;
   }
 
   /** Génère opérations puis, au plafond, créativité. */

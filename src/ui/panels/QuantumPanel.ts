@@ -15,17 +15,16 @@ export class QuantumPanel {
     const { state, quantum } = model;
     this.panel.hidden = !state.quantumUnlocked;
 
-    this.btnBuyQChip.disabled =
-      !state.quantumUnlocked ||
-      state.ops < quantum.getNextPhotonicChipCost();
-    this.btnQCompute.disabled = !state.quantumUnlocked || state.qChips < 1;
-
-    if (!state.quantumUnlocked) return;
-
+    // Toujours formater les compteurs (slots de lissage stables).
     this.qChips.textContent = NumberFormatter.formatInteger(state.qChips);
     this.qChipCost.textContent = NumberFormatter.formatInteger(
       quantum.getNextPhotonicChipCost(),
     );
+
+    this.btnBuyQChip.disabled =
+      !state.quantumUnlocked ||
+      state.ops < quantum.getNextPhotonicChipCost();
+    this.btnQCompute.disabled = !state.quantumUnlocked || state.qChips < 1;
     this.btnQCompute.textContent = state.qComputeActive
       ? "Arrêter le calcul (figer les ops)"
       : "Calcul quantique";
