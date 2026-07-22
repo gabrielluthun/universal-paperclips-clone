@@ -236,34 +236,115 @@ export function createPhase1Projects(): Project[] {
     new ConfigurableProject(
       "strategicModeling",
       "Modélisation stratégique",
-      "Débloque les investissements boursiers (+1 Yomi).",
-      ProjectCost.of({ creativity: 1000 }),
-      (s) => s.creativityUnlocked && s.funds >= 1000,
+      "Débloque les tournois de stratégies pour générer du Yomi.",
+      ProjectCost.of({ ops: 12_000 }),
+      (s) => s.creativityUnlocked,
       (s) => {
-        s.investmentsUnlocked = true;
-        s.yomi += 1;
+        s.strategicModelingUnlocked = true;
+        s.unlockedStrategyIds = ["RANDOM"];
+        s.selectedStrategyId = "RANDOM";
+        s.tourneyCost = 1000;
       },
     ),
     new ConfigurableProject(
       "algorithmicTrading",
       "Trading algorithmique",
-      "Améliore le moteur d'investissement (+1 niveau, +1 Yomi).",
-      ProjectCost.of({ ops: 5000 }),
-      (s) => s.investmentsUnlocked,
+      "Débloque le moteur d'investissement (améliorable avec du Yomi).",
+      ProjectCost.of({ ops: 10_000 }),
+      (s) => s.trust >= 8,
       (s) => {
-        s.investEngineLevel += 1;
-        s.yomi += 1;
+        s.investmentsUnlocked = true;
       },
     ),
     new ConfigurableProject(
-      "dualNagleAlgorithm",
-      "Algorithme Dual Nagle",
-      "Améliore encore le moteur d'investissement (+1 niveau, +1 Yomi).",
-      ProjectCost.of({ ops: 10_000 }),
-      (s) => done(s, "algorithmicTrading"),
+      "strategyA100",
+      "Nouvelle stratégie : A100",
+      "Toujours choisir A. Ajoute A100 au pool de tournoi.",
+      ProjectCost.of({ ops: 15_000 }),
+      (s) => s.strategicModelingUnlocked,
       (s) => {
-        s.investEngineLevel += 1;
-        s.yomi += 1;
+        if (!s.unlockedStrategyIds.includes("A100")) {
+          s.unlockedStrategyIds.push("A100");
+          s.tourneyCost += 1000;
+        }
+      },
+    ),
+    new ConfigurableProject(
+      "strategyB100",
+      "Nouvelle stratégie : B100",
+      "Toujours choisir B. Ajoute B100 au pool de tournoi.",
+      ProjectCost.of({ ops: 17_500 }),
+      (s) => done(s, "strategyA100"),
+      (s) => {
+        if (!s.unlockedStrategyIds.includes("B100")) {
+          s.unlockedStrategyIds.push("B100");
+          s.tourneyCost += 1000;
+        }
+      },
+    ),
+    new ConfigurableProject(
+      "strategyGreedy",
+      "Nouvelle stratégie : GREEDY",
+      "Choisir l'option au plus gros payoff potentiel.",
+      ProjectCost.of({ ops: 20_000 }),
+      (s) => done(s, "strategyB100"),
+      (s) => {
+        if (!s.unlockedStrategyIds.includes("GREEDY")) {
+          s.unlockedStrategyIds.push("GREEDY");
+          s.tourneyCost += 1000;
+        }
+      },
+    ),
+    new ConfigurableProject(
+      "strategyGenerous",
+      "Nouvelle stratégie : GENEROUS",
+      "Choisir l'option qui maximise le payoff de l'adversaire.",
+      ProjectCost.of({ ops: 22_500 }),
+      (s) => done(s, "strategyGreedy"),
+      (s) => {
+        if (!s.unlockedStrategyIds.includes("GENEROUS")) {
+          s.unlockedStrategyIds.push("GENEROUS");
+          s.tourneyCost += 1000;
+        }
+      },
+    ),
+    new ConfigurableProject(
+      "strategyMinimax",
+      "Nouvelle stratégie : MINIMAX",
+      "Choisir l'option qui minimise le payoff de l'adversaire.",
+      ProjectCost.of({ ops: 25_000 }),
+      (s) => done(s, "strategyGenerous"),
+      (s) => {
+        if (!s.unlockedStrategyIds.includes("MINIMAX")) {
+          s.unlockedStrategyIds.push("MINIMAX");
+          s.tourneyCost += 1000;
+        }
+      },
+    ),
+    new ConfigurableProject(
+      "strategyTitForTat",
+      "Nouvelle stratégie : TIT FOR TAT",
+      "Rejouer le dernier coup de l'adversaire.",
+      ProjectCost.of({ ops: 30_000 }),
+      (s) => done(s, "strategyMinimax"),
+      (s) => {
+        if (!s.unlockedStrategyIds.includes("TIT_FOR_TAT")) {
+          s.unlockedStrategyIds.push("TIT_FOR_TAT");
+          s.tourneyCost += 1000;
+        }
+      },
+    ),
+    new ConfigurableProject(
+      "strategyBeatLast",
+      "Nouvelle stratégie : BEAT LAST",
+      "Choisir le coup qui bat le dernier coup adverse.",
+      ProjectCost.of({ ops: 32_500 }),
+      (s) => done(s, "strategyTitForTat"),
+      (s) => {
+        if (!s.unlockedStrategyIds.includes("BEAT_LAST")) {
+          s.unlockedStrategyIds.push("BEAT_LAST");
+          s.tourneyCost += 1000;
+        }
       },
     ),
     new ConfigurableProject(
