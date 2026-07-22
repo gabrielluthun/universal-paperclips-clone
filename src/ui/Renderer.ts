@@ -1,3 +1,4 @@
+import { NumberFormatter } from "../util/NumberFormatter";
 import type { RenderModel } from "./RenderModel";
 import { BusinessPanel } from "./panels/BusinessPanel";
 import { ComputePanel } from "./panels/ComputePanel";
@@ -20,6 +21,7 @@ export class Renderer {
   private readonly projects = new ProjectsPanel();
 
   render(model: RenderModel): void {
+    NumberFormatter.beginFrame();
     this.phase.render(model);
     this.business.render(model);
     this.compute.render(model);
