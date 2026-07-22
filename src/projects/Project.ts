@@ -12,6 +12,19 @@ export abstract class Project {
     readonly cost: ProjectCost,
   ) {}
 
+  /** Coût courant (peut dépendre de l'état pour les projets répétables). */
+  getCost(_state: GameState): ProjectCost {
+    return this.cost;
+  }
+
+  /**
+   * Si true (défaut), le projet disparaît après activation.
+   * Les projets répétables (ex. jetons de goodwill) restent disponibles.
+   */
+  marksAsCompleted(): boolean {
+    return true;
+  }
+
   /** Le projet est-il proposé au joueur dans l'état actuel ? */
   abstract isVisible(state: GameState): boolean;
 

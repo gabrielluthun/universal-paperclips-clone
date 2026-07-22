@@ -35,6 +35,12 @@ export class GameState {
   megaClipperBonus = 1;
   autoWire = false;
 
+  /**
+   * Coût du prochain « Autre jeton de goodwill » ($).
+   * Double à chaque achat, plafonné à 512 M$.
+   */
+  goodwillTokenCost = 1_000_000;
+
   trust = 2;
   nextTrust = 3000;
   trustFibA = 2;

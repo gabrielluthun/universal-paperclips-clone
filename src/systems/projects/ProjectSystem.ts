@@ -24,25 +24,32 @@ export class ProjectSystem {
   /** Projets visibles et pas encore réalisés (liste vide si plateau verrouillé). */
   getAvailableProjects(): Project[] {
     if (!this.isProjectsBoardUnlocked()) return [];
-    return this.catalog.filter(
-      (project) =>
-        !this.state.hasCompletedProject(project.id) &&
-        project.isVisible(this.state),
-    );
+    return this.catalog.filter((project) => {
+      if (project.marksAsCompleted() && this.state.hasCompletedProject(project.id)) {
+        return false;
+      }
+      return project.isVisible(this.state);
+    });
   }
 
-  /** Paie le coût, applique l'effet et marque le projet comme terminé. */
+  /** Paie le coût, applique l'effet et marque le projet comme terminé (sauf répétables). */
   activateProject(id: string): boolean {
     if (!this.isProjectsBoardUnlocked()) return false;
     const project = this.catalog.find((entry) => entry.id === id);
     if (!project) return false;
-    if (this.state.hasCompletedProject(id)) return false;
+    if (project.marksAsCompleted() && this.state.hasCompletedProject(id)) {
+      return false;
+    }
     if (!project.isVisible(this.state)) return false;
-    if (!project.cost.canAfford(this.state)) return false;
 
-    project.cost.deductFrom(this.state);
+    const cost = project.getCost(this.state);
+    if (!cost.canAfford(this.state)) return false;
+
+    cost.deductFrom(this.state);
     project.applyEffectTo(this.state);
-    this.state.markProjectCompleted(id);
+    if (project.marksAsCompleted()) {
+      this.state.markProjectCompleted(id);
+    }
     return true;
   }
 }
