@@ -25,15 +25,31 @@ describe("ProjectCost", () => {
     state.ops = 1000;
     state.creativity = 80;
     state.funds = 20;
-    ProjectCost.of({ ops: 750, creativity: 50, funds: 5 }).deductFrom(state);
+    state.yomi = 50;
+    ProjectCost.of({
+      ops: 750,
+      creativity: 50,
+      funds: 5,
+      yomi: 10,
+    }).deductFrom(state);
     expect(state.ops).toBe(250);
     expect(state.creativity).toBe(30);
     expect(state.funds).toBe(15);
+    expect(state.yomi).toBe(40);
     expect(state.trust).toBe(2);
   });
 
+  it("peut exiger de la confiance sans la débiter", () => {
+    const state = GameState.createInitial();
+    state.trust = 100;
+    const cost = ProjectCost.of({ trust: 100, spendTrust: false });
+    expect(cost.canAfford(state)).toBe(true);
+    cost.deductFrom(state);
+    expect(state.trust).toBe(100);
+  });
+
   it("formate le coût pour l'affichage", () => {
-    const cost = ProjectCost.of({ ops: 750, creativity: 50 });
-    expect(cost.toDisplayString()).toBe("750 ops · 50 créat.");
+    const cost = ProjectCost.of({ ops: 750, creativity: 50, yomi: 3000 });
+    expect(cost.toDisplayString()).toBe("750 ops · 50 créat. · 3 000 yomi");
   });
 });

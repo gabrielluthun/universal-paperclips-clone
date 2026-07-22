@@ -52,10 +52,24 @@ describe("ProjectSystem", () => {
     expect(state.hasCompletedProject("improvedWireExtrusion")).toBe(false);
   });
 
-  it("libère les HypnoDrones à 100 de confiance et passe en phase 2", () => {
+  it("exige HypnoDrones puis 100 de confiance pour clore la phase 1", () => {
     const state = GameState.createInitial();
     state.trust = 100;
+    state.processors = 40;
+    state.memory = 60;
+    state.ops = 70_000;
+    state.markProjectCompleted("hypnoHarmonics");
     const projects = new ProjectSystem(state);
+
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "hypnoDrones",
+    );
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "releaseHypnoDrones",
+    );
+
+    expect(projects.activateProject("hypnoDrones")).toBe(true);
+    expect(state.ops).toBe(0);
 
     expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
       "releaseHypnoDrones",
@@ -64,6 +78,72 @@ describe("ProjectSystem", () => {
     expect(state.phase1Complete).toBe(true);
     expect(state.phase).toBe(2);
     expect(state.phase1EndAcknowledged).toBe(false);
+    expect(state.trust).toBe(100); // processors + memory
     expect(projects.activateProject("releaseHypnoDrones")).toBe(false);
+  });
+
+  it("OPA hostile puis monopole : marketing et confiance", () => {
+    const state = GameState.createInitial();
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.investmentsUnlocked = true;
+    state.funds = 11_000_000;
+    state.yomi = 3000;
+    state.marketingEffectiveness = 1;
+    const projects = new ProjectSystem(state);
+
+    expect(projects.activateProject("hostileTakeover")).toBe(true);
+    expect(state.funds).toBe(10_000_000);
+    expect(state.marketingEffectiveness).toBe(5);
+    expect(state.trust).toBe(3);
+
+    expect(projects.activateProject("fullMonopoly")).toBe(true);
+    expect(state.funds).toBe(0);
+    expect(state.yomi).toBe(0);
+    expect(state.marketingEffectiveness).toBe(50);
+    expect(state.trust).toBe(4);
+  });
+
+  it("jetons de goodwill répétables jusqu'à 100 de confiance", () => {
+    const state = GameState.createInitial();
+    state.trust = 85;
+    state.clips = 101_000_000;
+    state.funds = 2_000_000;
+    const projects = new ProjectSystem(state);
+
+    expect(projects.activateProject("tokenOfGoodwill")).toBe(true);
+    expect(state.trust).toBe(86);
+    expect(state.funds).toBe(1_500_000);
+
+    expect(projects.activateProject("anotherTokenOfGoodwill")).toBe(true);
+    expect(state.trust).toBe(87);
+    expect(state.funds).toBe(500_000);
+    expect(state.goodwillTokenCost).toBe(2_000_000);
+    expect(state.hasCompletedProject("anotherTokenOfGoodwill")).toBe(false);
+
+    // Pas assez pour le prochain jeton à 2 M$
+    expect(projects.activateProject("anotherTokenOfGoodwill")).toBe(false);
+
+    state.funds = 2_000_000;
+    expect(projects.activateProject("anotherTokenOfGoodwill")).toBe(true);
+    expect(state.trust).toBe(88);
+    expect(state.goodwillTokenCost).toBe(4_000_000);
+  });
+
+  it("projets CEV : gros gains de confiance hors Fibonacci", () => {
+    const state = GameState.createInitial();
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.markProjectCompleted("donkeySpace");
+    state.strategicModelingUnlocked = true;
+    state.creativity = 500;
+    state.ops = 20_000;
+    state.yomi = 3000;
+    const projects = new ProjectSystem(state);
+
+    expect(projects.activateProject("coherentExtrapolatedVolition")).toBe(true);
+    expect(state.trust).toBe(3);
+
+    state.ops = 20_000;
+    expect(projects.activateProject("malePatternBaldness")).toBe(true);
+    expect(state.trust).toBe(23);
   });
 });
