@@ -47,17 +47,32 @@ export class InvestmentSystem extends GameSystem {
   }
 
   /**
-   * Rendement attendu par seconde selon moteur, yomi et risque.
-   * Risque élevé = espérance et volatilité plus fortes.
+   * Rendement attendu par seconde selon moteur et risque.
+   * Le Yomi n'agit plus directement : il paie les upgrades de moteur.
    */
   getExpectedReturnRate(): number {
     const s = this.state;
     const riskFactor = s.investRisk === 1 ? 0.4 : s.investRisk === 2 ? 1 : 1.8;
-    return 0.002 * s.investEngineLevel * (1 + s.yomi * 0.15) * riskFactor;
+    return 0.002 * s.investEngineLevel * riskFactor;
   }
 
   getVolatility(): number {
     return 0.01 * this.state.investRisk;
+  }
+
+  /** Coût Yomi du prochain niveau de moteur (formule UP). */
+  getNextEngineUpgradeCost(): number {
+    return Math.floor(Math.pow(this.state.investEngineLevel, Math.E) * 100);
+  }
+
+  /** Améliore le moteur d'investissement en dépensant du Yomi. */
+  upgradeEngineWithYomi(): boolean {
+    if (!this.state.investmentsUnlocked) return false;
+    const cost = this.getNextEngineUpgradeCost();
+    if (this.state.yomi < cost) return false;
+    this.state.yomi -= cost;
+    this.state.investEngineLevel += 1;
+    return true;
   }
 
   /** Applique un tick boursier (exposé pour les tests). */

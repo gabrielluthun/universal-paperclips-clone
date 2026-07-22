@@ -1,5 +1,5 @@
 /** Version de la sauvegarde. S'incrémente lorsque des modifications sont apportées à la structure de l'état pour éviter les erreurs de désérialisation. */
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 /** État mutable de la partie — source de vérité pour tous les systèmes. */
 export class GameState {
@@ -45,7 +45,23 @@ export class GameState {
   creativity = 0;
   creativityUnlocked = false;
 
-  // --- Investissements (étape 4) ---
+  // --- Modélisation stratégique / Yomi ---
+  strategicModelingUnlocked = false;
+  /** Stratégies débloquées (RANDOM au départ du projet). */
+  unlockedStrategyIds: string[] = ["RANDOM"];
+  selectedStrategyId = "RANDOM";
+  /** Coût ops d'un tournoi (1000 × nombre de stratégies). */
+  tourneyCost = 1000;
+  /** Multiplicateur de Yomi (×2 après Théorie de l'esprit, plus tard). */
+  yomiBoost = 1;
+  tourneyPayoff: { aa: number; ab: number; ba: number; bb: number } | null =
+    null;
+  tourneyChoiceA = "";
+  tourneyChoiceB = "";
+  tourneyResults: { id: string; name: string; score: number }[] = [];
+  lastTourneyYomiGained = 0;
+
+  // --- Investissements ---
   investmentsUnlocked = false;
   /** Fonds placés sur les marchés. */
   investmentFunds = 0;
@@ -53,12 +69,12 @@ export class GameState {
   investEngineLevel = 1;
   /** Risque : 1 = faible, 2 = moyen, 3 = élevé. */
   investRisk = 1;
-  /** Score Yomi (améliore les rendements). */
+  /** Yomi (gagné aux tournois, dépensé pour le moteur). */
   yomi = 0;
   /** Dernière variation boursière affichée ($). */
   lastStockDelta = 0;
 
-  // --- Quantique (étape 4) ---
+  // --- Quantique ---
   quantumUnlocked = false;
   /** Puces photoniques. */
   qChips = 0;
@@ -94,6 +110,14 @@ export class GameState {
 
     const savedIds = data.completedProjectIds ?? data.completedProjects;
     state.completedProjectIds = Array.isArray(savedIds) ? [...savedIds] : [];
+
+    if (!Array.isArray(state.unlockedStrategyIds) || state.unlockedStrategyIds.length === 0) {
+      state.unlockedStrategyIds = ["RANDOM"];
+    }
+    if (!Array.isArray(state.tourneyResults)) {
+      state.tourneyResults = [];
+    }
+
     state.version = SAVE_VERSION;
     return state;
   }
@@ -114,5 +138,24 @@ export class GameState {
     if (!this.hasCompletedProject(id)) {
       this.completedProjectIds.push(id);
     }
+  }
+
+  /**
+   * Remplace l'état vivant par une sauvegarde (même référence d'objet,
+   * pour que les systèmes déjà construits restent valides).
+   */
+  adoptSavedData(raw: unknown): void {
+    const loaded = GameState.fromSavedData(raw);
+    const data = loaded.toSavedData() as Record<string, unknown>;
+    const {
+      completedProjects: _legacy,
+      completedProjectIds: savedIds,
+      ...rest
+    } = data;
+    Object.assign(this, rest);
+    this.completedProjectIds = Array.isArray(savedIds)
+      ? [...(savedIds as string[])]
+      : [];
+    this.version = SAVE_VERSION;
   }
 }

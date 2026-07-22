@@ -91,4 +91,18 @@ describe("ProductionSystem", () => {
     expect(production.grantEmergencyWireIfSoftLocked()).toBe(false);
     expect(state.wire).toBe(0);
   });
+
+  it("arrête toute fabrication une fois la phase 1 terminée", () => {
+    const { state, production } = makeProduction();
+    state.phase1Complete = true;
+    state.autoClippers = 50;
+    state.wire = 1000;
+
+    expect(production.produceClips(10)).toBe(0);
+    expect(production.getAutomaticProductionRate()).toBe(0);
+    production.update(1000);
+    expect(production.takeClipsProducedDuringLastUpdate()).toBe(0);
+    expect(state.clips).toBe(0);
+    expect(state.wire).toBe(1000);
+  });
 });

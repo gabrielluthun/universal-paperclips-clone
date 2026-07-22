@@ -12,11 +12,17 @@ export class ProductionSystem extends GameSystem {
     super(state);
   }
 
+  /** Plus de fabrication une fois la phase 1 close. */
+  isProductionHalted(): boolean {
+    return this.state.phase1Complete;
+  }
+
   /**
    * Fabrique jusqu'à `count` trombones (limité par le fil disponible).
    * Retourne le nombre réellement fabriqué.
    */
   produceClips(count: number): number {
+    if (this.isProductionHalted()) return 0;
     const state = this.state;
     const made = Math.min(count, Math.floor(state.wire));
     if (made <= 0) return 0;
@@ -63,6 +69,7 @@ export class ProductionSystem extends GameSystem {
   }
 
   getAutomaticProductionRate(): number {
+    if (this.isProductionHalted()) return 0;
     const state = this.state;
     const fromAuto = state.autoClippers * state.clipperBonus;
     const fromMega = state.megaClippers * 500 * state.megaClipperBonus;
@@ -70,6 +77,7 @@ export class ProductionSystem extends GameSystem {
   }
 
   private produceClipsAutomatically(deltaMs: number): number {
+    if (this.isProductionHalted()) return 0;
     const state = this.state;
     const production_rate = this.getAutomaticProductionRate();
     if (production_rate <= 0) return 0;
@@ -83,6 +91,7 @@ export class ProductionSystem extends GameSystem {
 
   private purchaseWireIfStockIsLow(): void {
     const state = this.state;
+    if (this.isProductionHalted()) return;
     if (!state.autoWire) return;
     if (state.wire >= state.wirePerSpool / 2) return;
     this.purchaseWireSpool();

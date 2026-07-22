@@ -7,6 +7,8 @@ import { MarketSystem } from "../systems/market/MarketSystem";
 import { ProductionSystem } from "../systems/production/ProductionSystem";
 import { ProjectSystem } from "../systems/projects/ProjectSystem";
 import { QuantumSystem } from "../systems/quantum/QuantumSystem";
+import { StrategicModelingSystem } from "../systems/strategic/StrategicModelingSystem";
+import type { StrategyId } from "../systems/strategic/strategies";
 import { Renderer } from "../ui/Renderer";
 
 const TICK_MS = 100;
@@ -22,6 +24,7 @@ export class Game {
   readonly market: MarketSystem;
   readonly projects: ProjectSystem;
   readonly investments: InvestmentSystem;
+  readonly strategic: StrategicModelingSystem;
   readonly quantum: QuantumSystem;
 
   private readonly simulationSystems: GameSystem[];
@@ -64,6 +67,7 @@ export class Game {
     this.market = new MarketSystem(this.state);
     this.projects = new ProjectSystem(this.state);
     this.investments = new InvestmentSystem(this.state);
+    this.strategic = new StrategicModelingSystem(this.state);
     this.quantum = new QuantumSystem(this.state);
     this.simulationSystems = [
       this.production,
@@ -80,6 +84,10 @@ export class Game {
       if (!this.isResetting) this.saveManager.saveGame(this.state);
     }, AUTOSAVE_MS);
     window.addEventListener("beforeunload", this.handlePageUnload);
+
+    if (import.meta.env.DEV) {
+      (window as Window & { __tromboneGame?: Game }).__tromboneGame = this;
+    }
 
     this.lastFrameTimestamp = performance.now();
     requestAnimationFrame(this.handleAnimationFrame);
@@ -178,6 +186,9 @@ export class Game {
     this.bindButtonClick("btn-invest-withdraw", () =>
       this.investments.withdrawAll(),
     );
+    this.bindButtonClick("btn-upgrade-engine", () =>
+      this.investments.upgradeEngineWithYomi(),
+    );
     this.bindButtonClick("btn-risk-low", () =>
       this.investments.setRiskLevel(1),
     );
@@ -187,6 +198,15 @@ export class Game {
     this.bindButtonClick("btn-risk-high", () =>
       this.investments.setRiskLevel(3),
     );
+
+    this.bindButtonClick("btn-run-tourney", () => this.strategic.runTournament());
+    const stratPicker = document.getElementById("strat-picker");
+    if (stratPicker) {
+      stratPicker.addEventListener("change", (event) => {
+        const value = (event.target as HTMLSelectElement).value as StrategyId;
+        this.strategic.selectStrategy(value);
+      });
+    }
 
     this.bindButtonClick("btn-buy-qchip", () =>
       this.quantum.purchasePhotonicChip(),
