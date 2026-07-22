@@ -1,5 +1,13 @@
+# Dependencies
 node_modules/
 dist/
 *.local
+
+# OS files
 .DS_Store
+
+# Coverage
 /coverage
+
+# Saves for testing purposes
+src/dev
