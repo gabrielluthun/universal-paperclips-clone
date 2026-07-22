@@ -91,4 +91,33 @@
   .project-card button {
     @apply mt-0 w-full;
   }
+
+  .strat-picker {
+    @apply max-w-[55%] rounded border border-btn-border bg-white px-1.5 py-1 font-[inherit] text-sm;
+  }
+
+  .tourney-grid {
+    @apply mt-2;
+  }
+
+  .payoff-table {
+    @apply w-full border-collapse text-center text-xs tabular-nums;
+  }
+
+  .payoff-table th,
+  .payoff-table td {
+    @apply border border-line px-1.5 py-1;
+  }
+
+  .tourney-results {
+    @apply mt-2;
+  }
+
+  .tourney-results-list {
+    @apply m-0 list-decimal pl-5 text-[13px] tabular-nums;
+  }
+
+  .tourney-results-list .picked {
+    @apply font-semibold;
+  }
 }
