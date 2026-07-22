@@ -1,7 +1,7 @@
 # Fun project : Universal Paperclips (clone)
 
 Jeu incrémental web inspiré d’[Universal Paperclips](https://www.decisionproblem.com/paperclips/), en français.
-<small><i>Et aussi parce que le développeur aime beaucoup le jeu. Et les trombones aussi.</i></small>
+*Et aussi parce que le développeur aime beaucoup le jeu. Et les trombones aussi.*
 
 ## État du jeu
 
@@ -12,7 +12,7 @@ Jeu incrémental web inspiré d’[Universal Paperclips](https://www.decisionpro
 - plateau de projets 
 - modélisation stratégique (tournois → Yomi) et investissements
 - calcul quantique (version simplifiée)
-- fin de phase via *HypnoDrones* puis *Libérer les HypnoDrones*
+- fin de phase via *HypnoDrones,* puis *Libérer les HypnoDrones*
 
 **Phases 2 (Terre) et 3 (espace)** : pas encore implémentées. Un teaser s’affiche après la fin de la phase 1.
 
@@ -23,10 +23,14 @@ Jeu incrémental web inspiré d’[Universal Paperclips](https://www.decisionpro
 - **Vitest** (happy-dom) pour les tests
 - sauvegarde locale (`localStorage`)
 
+
+
 ## Prérequis
 
 - Node.js 20+ recommandé
 - npm
+
+
 
 ## Installation
 
@@ -34,16 +38,22 @@ Jeu incrémental web inspiré d’[Universal Paperclips](https://www.decisionpro
 npm install
 ```
 
+
+
 ## Scripts
 
-| Commande | Description |
-|---|---|
-| `npm run dev` | Serveur de développement (Vite) |
-| `npm run build` | `tsc` + build production |
-| `npm run preview` | Prévisualiser le build |
-| `npm test` | Tests unitaires |
-| `npm run test:watch` | Tests en mode watch |
-| `npm run test:coverage` | Couverture de code |
+
+| Commande                | Description                     |
+| ----------------------- | ------------------------------- |
+| `npm run dev`           | Serveur de développement (Vite) |
+| `npm run build`         | `tsc` + build production        |
+| `npm run preview`       | Prévisualiser le build          |
+| `npm test`              | Tests unitaires                 |
+| `npm run test:watch`    | Tests en mode watch             |
+| `npm run test:coverage` | Couverture de code              |
+
+
+
 
 ## Jouer en local
 
@@ -75,13 +85,6 @@ src/
   style.css               Tailwind + thème
 ```
 
-## Déploiement
-
-Le site est publié sur GitHub Pages via [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) :
-
-- push sur `develop` (ou lancement manuel du workflow)
-- source Pages = **GitHub Actions**
-- `base` Vite = `/universal-paperclips-clone/` dans `vite.config.ts`
 
 ## Licence
 
