@@ -85,17 +85,9 @@ src/
   style.css               Tailwind + thème
 ```
 
-## Déploiement (GitHub Pages — **Deploy from a branch**)
+## Déploiement 
 
-GitHub Pages **ne compile pas** TypeScript ni Tailwind. Il faut publier le **build**, pas `src/`.
-
-1. En local : `npm run build` → génère le dossier `docs/`
-2. Commit et push `docs/`
-3. Settings → Pages → **Deploy from a branch** → branche `develop` (ou `main`) → dossier **`/docs`**
-
-URL typique : `https://<user>.github.io/universal-paperclips-clone/`
-
-`base: "./"` garantit que CSS/JS se chargent sous ce sous-chemin.
+Déploiement effectué via GitHub Pages, jouable [ici](https://gabrielluthun.github.io/universal-paperclips-clone/).
 
 
 ## Licence
