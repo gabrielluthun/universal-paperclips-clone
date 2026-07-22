@@ -26,7 +26,7 @@ describe("InvestmentSystem", () => {
     expect(state.investmentFunds).toBe(0);
   });
 
-  it("augmente le rendement attendu avec moteur, yomi et risque", () => {
+  it("augmente le rendement attendu avec moteur et risque", () => {
     const state = GameState.createInitial();
     state.investmentsUnlocked = true;
     const invest = new InvestmentSystem(state);
@@ -35,10 +35,21 @@ describe("InvestmentSystem", () => {
     state.investEngineLevel = 2;
     expect(invest.getExpectedReturnRate()).toBeGreaterThan(base);
 
-    state.yomi = 2;
-    const withYomi = invest.getExpectedReturnRate();
+    const withEngine = invest.getExpectedReturnRate();
     state.investRisk = 3;
-    expect(invest.getExpectedReturnRate()).toBeGreaterThan(withYomi);
+    expect(invest.getExpectedReturnRate()).toBeGreaterThan(withEngine);
+  });
+
+  it("améliore le moteur en dépensant du Yomi", () => {
+    const state = GameState.createInitial();
+    state.investmentsUnlocked = true;
+    state.yomi = 100;
+    const invest = new InvestmentSystem(state);
+    expect(invest.getNextEngineUpgradeCost()).toBe(100);
+    expect(invest.upgradeEngineWithYomi()).toBe(true);
+    expect(state.investEngineLevel).toBe(2);
+    expect(state.yomi).toBe(0);
+    expect(invest.upgradeEngineWithYomi()).toBe(false);
   });
 
   it("applique un tick boursier qui fait varier le portefeuille", () => {
