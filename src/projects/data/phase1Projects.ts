@@ -488,7 +488,7 @@ export function createPhase1Projects(): Project[] {
     new ConfigurableProject(
       "releaseHypnoDrones",
       "Libérer les HypnoDrones",
-      "Clôt la phase 1 et ouvre la voie à la phase 2 (Terre). Absorbe la confiance non allouée.",
+      "Clôt la phase 1 et ouvre la voie à la phase 2 (bientôt disponible). Absorbe la confiance non allouée.",
       ProjectCost.of({ trust: 100, spendTrust: false }),
       (s) =>
         done(s, "hypnoDrones") &&
