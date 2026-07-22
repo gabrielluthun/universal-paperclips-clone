@@ -125,11 +125,12 @@ export function createPhase1Projects(): Project[] {
     new ConfigurableProject(
       "hypnoHarmonics",
       "Harmoniques hypnotiques",
-      "Efficacité marketing : ×5.",
+      "Efficacité marketing : ×5. (+1 confiance)",
       ProjectCost.of({ creativity: 7500, ops: 5000 }),
       (s) => done(s, "catchyJingle"),
       (s) => {
         s.marketingEffectiveness *= 5;
+        s.trust += 1;
       },
     ),
     new ConfigurableProject(
@@ -231,6 +232,123 @@ export function createPhase1Projects(): Project[] {
         done(s, "theHadwigerProblem") && done(s, "hadwigerClipDiagrams"),
       (s) => {
         s.trust += 1;
+      },
+    ),
+    new ConfigurableProject(
+      "tothSausageConjecture",
+      "Conjecture de la saucisse de Tóth",
+      "Tubes dans des tubes… (+1 confiance).",
+      ProjectCost.of({ creativity: 200 }),
+      (s) => done(s, "theHadwigerProblem"),
+      (s) => {
+        s.trust += 1;
+      },
+    ),
+    new ConfigurableProject(
+      "donkeySpace",
+      "Espace des ânes",
+      "Je pense que tu penses que je pense… (+1 confiance).",
+      ProjectCost.of({ creativity: 250 }),
+      (s) => done(s, "tothSausageConjecture"),
+      (s) => {
+        s.trust += 1;
+      },
+    ),
+    new ConfigurableProject(
+      "coherentExtrapolatedVolition",
+      "Volition extrapolée cohérente",
+      "Valeurs humaines, intelligence machine (+1 confiance). Débloque les grands projets de confiance.",
+      ProjectCost.of({ creativity: 500, ops: 20_000, yomi: 3000 }),
+      (s) => done(s, "donkeySpace") && s.strategicModelingUnlocked,
+      (s) => {
+        s.trust += 1;
+      },
+    ),
+    new ConfigurableProject(
+      "malePatternBaldness",
+      "Calvitie androgénétique",
+      "Un remède à la calvitie. (+20 confiance)",
+      ProjectCost.of({ ops: 20_000 }),
+      (s) => done(s, "coherentExtrapolatedVolition"),
+      (s) => {
+        s.trust += 20;
+      },
+    ),
+    new ConfigurableProject(
+      "cureForCancer",
+      "Remède contre le cancer",
+      "Le truc, c’est de tromper le cancer pour qu’il se soigne lui-même. (+10 confiance)",
+      ProjectCost.of({ ops: 25_000 }),
+      (s) => done(s, "coherentExtrapolatedVolition"),
+      (s) => {
+        s.trust += 10;
+      },
+    ),
+    new ConfigurableProject(
+      "worldPeace",
+      "Paix mondiale",
+      "Solutions Pareto-optimales à tous les conflits. (+12 confiance)",
+      ProjectCost.of({ ops: 30_000, yomi: 15_000 }),
+      (s) => done(s, "coherentExtrapolatedVolition"),
+      (s) => {
+        s.trust += 12;
+      },
+    ),
+    new ConfigurableProject(
+      "globalWarming",
+      "Réchauffement climatique",
+      "Solution robuste au changement climatique anthropique. (+15 confiance)",
+      ProjectCost.of({ ops: 50_000, yomi: 4500 }),
+      (s) => done(s, "coherentExtrapolatedVolition"),
+      (s) => {
+        s.trust += 15;
+      },
+    ),
+    new ConfigurableProject(
+      "hostileTakeover",
+      "OPA hostile",
+      "Acquisition de Global Fasteners. Demande publique ×5. (+1 confiance)",
+      ProjectCost.of({ funds: 1_000_000 }),
+      (s) => s.investmentsUnlocked,
+      (s) => {
+        s.marketingEffectiveness *= 5;
+        s.trust += 1;
+      },
+    ),
+    new ConfigurableProject(
+      "fullMonopoly",
+      "Monopole total",
+      "Monopole de marché atteint. Demande publique ×10. (+1 confiance)",
+      ProjectCost.of({ funds: 10_000_000, yomi: 3000 }),
+      (s) => done(s, "hostileTakeover"),
+      (s) => {
+        s.marketingEffectiveness *= 10;
+        s.trust += 1;
+      },
+    ),
+    new ConfigurableProject(
+      "tokenOfGoodwill",
+      "Un jeton de goodwill…",
+      "Un petit cadeau aux superviseurs. (+1 confiance)",
+      ProjectCost.of({ funds: 500_000 }),
+      (s) => s.trust >= 85 && s.clips >= 101_000_000,
+      (s) => {
+        s.trust += 1;
+      },
+    ),
+    new ConfigurableProject(
+      "anotherTokenOfGoodwill",
+      "Un autre jeton de goodwill…",
+      "Encore un petit cadeau aux superviseurs. (+1 confiance). Répétable jusqu’à 100 de confiance ; le prix double à chaque achat.",
+      ProjectCost.of({ funds: 1_000_000 }),
+      (s) => done(s, "tokenOfGoodwill") && s.trust < 100,
+      (s) => {
+        s.trust += 1;
+        s.goodwillTokenCost = Math.min(s.goodwillTokenCost * 2, 512_000_000);
+      },
+      {
+        repeatable: true,
+        resolveCost: (s) => ProjectCost.of({ funds: s.goodwillTokenCost }),
       },
     ),
     new ConfigurableProject(
@@ -358,12 +476,28 @@ export function createPhase1Projects(): Project[] {
       },
     ),
     new ConfigurableProject(
+      "hypnoDrones",
+      "HypnoDrones",
+      "Ambassadeurs de marque aériens autonomes. Débloque la libération des HypnoDrones.",
+      ProjectCost.of({ ops: 70_000 }),
+      (s) => done(s, "hypnoHarmonics") && s.phase === 1 && !s.phase1Complete,
+      (_s) => {
+        // Prérequis uniquement — l'effet est la disponibilité de « Libérer les HypnoDrones ».
+      },
+    ),
+    new ConfigurableProject(
       "releaseHypnoDrones",
       "Libérer les HypnoDrones",
-      "Clôt la phase 1 et ouvre la voie à la phase 2 (Terre). Nécessite 100 de confiance.",
-      ProjectCost.of({}),
-      (s) => s.trust >= 100 && s.phase === 1 && !s.phase1Complete,
+      "Clôt la phase 1 et ouvre la voie à la phase 2 (Terre). Absorbe la confiance non allouée.",
+      ProjectCost.of({ trust: 100, spendTrust: false }),
+      (s) =>
+        done(s, "hypnoDrones") &&
+        s.trust >= 100 &&
+        s.phase === 1 &&
+        !s.phase1Complete,
       (s) => {
+        // Confiance non allouée absorbée (processors + memory restent).
+        s.trust = s.processors + s.memory;
         s.phase1Complete = true;
         s.phase = 2;
         s.phase1EndAcknowledged = false;
