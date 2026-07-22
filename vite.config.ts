@@ -1,10 +1,15 @@
 import { defineConfig } from "vitest/config";
 
-export default defineConfig(({ command }) => ({
-  // Pages GitHub en prod ; racine en local pour les assets.
-  base: command === "build" ? "/universal-paperclips-clone/" : "/",
+export default defineConfig({
+  // Chemins relatifs : OK sous /universal-paperclips-clone/ sur GitHub Pages.
+  base: "./",
+  // Dossier servi par « Deploy from a branch » → /docs
+  build: {
+    outDir: "docs",
+    emptyOutDir: true,
+  },
   test: {
     environment: "happy-dom",
     include: ["src/**/*.test.ts"],
   },
-}));
+});
