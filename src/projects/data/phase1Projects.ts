@@ -57,7 +57,7 @@ export function createPhase1Projects(): Project[] {
       "Extrusion de fil améliorée",
       "Taille d'une bobine : ×1,5.",
       ProjectCost.of({ ops: 750 }),
-      (s) => s.clips >= 1,
+      (s) => s.clips >= 2000,
       (s) => {
         s.wirePerSpool = Math.floor(s.wirePerSpool * 1.5);
       },

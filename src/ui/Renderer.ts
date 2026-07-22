@@ -65,6 +65,7 @@ export class Renderer {
     creativity: () => requireElement<HTMLSpanElement>("creativity"),
     creativityRow: () => requireElement<HTMLDivElement>("creativity-row"),
     projectsList: () => requireElement<HTMLDivElement>("projects-list"),
+    panelProjects: () => requireElement<HTMLElement>("panel-projects"),
     panelInvestments: () => requireElement<HTMLElement>("panel-investments"),
     investFunds: () => requireElement<HTMLSpanElement>("invest-funds"),
     investDelta: () => requireElement<HTMLSpanElement>("invest-delta"),
@@ -146,6 +147,8 @@ export class Renderer {
 
     this.renderInvestments(model);
     this.renderQuantum(model);
+
+    this.dom.panelProjects().hidden = !model.projects.isProjectsBoardUnlocked();
 
     dom.btnMake().disabled = state.wire < 1;
     dom.btnBuyWire().disabled = state.funds < state.wireCost;
