@@ -1,10 +1,27 @@
 # Fun project : Universal Paperclips (clone)
 
-Jeu incrémental web inspiré d’[Universal Paperclips](https://www.decisionproblem.com/paperclips/), en français. 
+Jeu incrémental web inspiré d’[Universal Paperclips](https://www.decisionproblem.com/paperclips/), en français.
 <small><i>Et aussi parce que le développeur aime beaucoup le jeu. Et les trombones aussi.</i></small>
 
-**Phase 1 (business)** est jouable de bout en bout : production, marché, confiance / calcul, projets, bourse, quantique, puis *Libérer les HypnoDrones*. 
-Les phases 2 (Terre) et 3 (espace) sont en cours de développement : un teaser s’affiche en fin de phase 1.
+## État du jeu
+
+**Phase 1 (business)** est jouable de bout en bout :
+
+- production manuelle / auto / méga, fil, marché (prix, demande, marketing)
+- confiance, processeurs, mémoire, ops, créativité
+- plateau de projets 
+- modélisation stratégique (tournois → Yomi) et investissements
+- calcul quantique (version simplifiée)
+- fin de phase via *HypnoDrones* puis *Libérer les HypnoDrones*
+
+**Phases 2 (Terre) et 3 (espace)** : pas encore implémentées. Un teaser s’affiche après la fin de la phase 1.
+
+## Stack
+
+- **Vite** + **TypeScript** (sans framework UI, inutile ici)
+- **Tailwind CSS v4** via PostCSS
+- **Vitest** (happy-dom) pour les tests
+- sauvegarde locale (`localStorage`)
 
 ## Prérequis
 
@@ -22,9 +39,9 @@ npm install
 | Commande | Description |
 |---|---|
 | `npm run dev` | Serveur de développement (Vite) |
-| `npm run build` | Vérification TypeScript + build production |
+| `npm run build` | `tsc` + build production |
 | `npm run preview` | Prévisualiser le build |
-| `npm test` | Tests unitaires (Vitest) |
+| `npm test` | Tests unitaires |
 | `npm run test:watch` | Tests en mode watch |
 | `npm run test:coverage` | Couverture de code |
 
@@ -42,16 +59,20 @@ Architecture POO en **systèmes de jeu** (Game Loop + `GameSystem.update`) avec 
 
 ```
 src/
-  main.ts                 bootstrap
-  game/Game.ts            orchestrateur
+  main.ts                 bootstrap + CSS
+  game/Game.ts            orchestrateur (tick, save, UI)
   state/                  GameState, SaveManager
   systems/
     core/                 GameSystem
     production/ market/ compute/
     invest/ quantum/ projects/
-  projects/               Project, coûts, catalogue phase 1
-  ui/Renderer.ts
+    strategic/            tournois + Yomi
+  projects/               coûts, projets configurables, catalogue phase 1
+  ui/
+    Renderer.ts           orchestre le rendu
+    panels/               un panneau UI par domaine
   util/NumberFormatter.ts
+  style.css               Tailwind + thème
 ```
 
 ## Déploiement
@@ -64,4 +85,4 @@ Le site est publié sur GitHub Pages via [`.github/workflows/deploy.yml`](.githu
 
 ## Licence
 
-Projet personnel / Fun project.
+Projet personnel / fun project.
