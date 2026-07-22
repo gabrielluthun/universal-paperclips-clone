@@ -4,11 +4,31 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Trombones</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128206;</text></svg>" />
-    <script type="module" crossorigin src="./assets/index-vBBxsJkp.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-BxA_V-CB.css">
+    <link rel="icon" href="./trombone-logo.png" />
+    <script type="module" crossorigin src="./assets/index-N414j5Fc.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DbHuRHKk.css">
   </head>
   <body>
+    <div id="title-screen" class="title-screen" role="dialog" aria-label="Écran titre">
+      <button
+        id="btn-enter-game"
+        type="button"
+        class="title-logo-btn"
+        aria-label="Entrer dans le jeu"
+      >
+        <img
+          class="title-logo"
+          src="./trombone-logo.png"
+          width="140"
+          height="161"
+          alt=""
+          draggable="false"
+        />
+        <span class="title-brand">Trombones</span>
+        <span class="title-hint">Cliquer pour commencer</span>
+      </button>
+    </div>
+
     <div
       id="phase1-end-overlay"
       class="fixed inset-0 z-50 flex items-center justify-center bg-ink/55 p-4"
@@ -32,7 +52,7 @@
       </div>
     </div>
 
-    <div id="app" class="mx-auto max-w-[1100px] p-4">
+    <div id="app" class="mx-auto max-w-[1100px] p-4" hidden>
       <p
         id="phase2-banner"
         class="mb-3 rounded border border-line bg-project px-3 py-2 text-[0.9em] text-muted"
