@@ -10,6 +10,7 @@ import { QuantumSystem } from "../systems/quantum/QuantumSystem";
 import { StrategicModelingSystem } from "../systems/strategic/StrategicModelingSystem";
 import type { StrategyId } from "../systems/strategic/strategies";
 import { Renderer } from "../ui/Renderer";
+import { TitleScreen } from "../ui/TitleScreen";
 
 const TICK_MS = 100;
 const AUTOSAVE_MS = 10_000;
@@ -30,6 +31,8 @@ export class Game {
   private readonly simulationSystems: GameSystem[];
   private readonly saveManager = new SaveManager();
   private readonly renderer = new Renderer();
+  private readonly titleScreen = new TitleScreen();
+  private gameLoopStarted = false;
 
   private clipsMadeThisSecond = 0;
   private revenueThisSecond = 0;
@@ -80,14 +83,22 @@ export class Game {
 
   start(): void {
     this.bindUserInterface();
-    this.autosaveTimer = setInterval(() => {
-      if (!this.isResetting) this.saveManager.saveGame(this.state);
-    }, AUTOSAVE_MS);
-    window.addEventListener("beforeunload", this.handlePageUnload);
+    this.titleScreen.onEnter(() => this.beginGameLoop());
 
     if (import.meta.env.DEV) {
       (window as Window & { __tromboneGame?: Game }).__tromboneGame = this;
     }
+  }
+
+  /** Démarre tick, autosave et rendu après l’écran titre. */
+  private beginGameLoop(): void {
+    if (this.gameLoopStarted) return;
+    this.gameLoopStarted = true;
+
+    this.autosaveTimer = setInterval(() => {
+      if (!this.isResetting) this.saveManager.saveGame(this.state);
+    }, AUTOSAVE_MS);
+    window.addEventListener("beforeunload", this.handlePageUnload);
 
     this.lastFrameTimestamp = performance.now();
     requestAnimationFrame(this.handleAnimationFrame);

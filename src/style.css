@@ -181,3 +181,100 @@
     font-weight: 600;
   }
 }
+
+@layer components {
+  .title-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #edede8;
+    transition: opacity 0.28s ease, visibility 0.28s ease;
+  }
+
+  .title-screen--leaving {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .title-logo-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+    border: none;
+    background: transparent;
+    padding: 1.5rem;
+    color: var(--color-ink);
+    cursor: pointer;
+  }
+
+  .title-logo-btn:hover:enabled,
+  .title-logo-btn:active:enabled {
+    background: transparent;
+  }
+
+  .title-logo {
+    width: min(140px, 38vw);
+    height: auto;
+    display: block;
+    animation: title-logo-float 3.2s ease-in-out infinite;
+    transition: transform 0.2s ease;
+    user-select: none;
+  }
+
+  .title-logo-btn:hover .title-logo {
+    transform: scale(1.06);
+    animation-play-state: paused;
+  }
+
+  .title-brand {
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    font-weight: 650;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .title-hint {
+    font-size: 0.9em;
+    color: var(--color-muted);
+    letter-spacing: 0.04em;
+    animation: title-hint-pulse 2.4s ease-in-out infinite;
+  }
+
+  .app--entering {
+    animation: app-fade-in 0.35s ease;
+  }
+}
+
+@keyframes title-logo-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes title-hint-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes app-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
