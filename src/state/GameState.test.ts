@@ -61,6 +61,33 @@ describe("GameState", () => {
     expect(restored.clips).toBe(123_456_789);
   });
 
+  it("migre une save v6 (fin de phase 1) vers v7 en ajoutant les champs de phase 2 avec leurs défauts", () => {
+    const v6Save = {
+      version: 6,
+      phase: 2,
+      phase1Complete: true,
+      clips: 500_000,
+      trust: 42,
+      funds: 12_345,
+    };
+
+    const restored = GameState.fromSavedData(v6Save);
+
+    expect(restored.version).toBe(SAVE_VERSION);
+    // Progression existante intacte.
+    expect(restored.phase).toBe(2);
+    expect(restored.phase1Complete).toBe(true);
+    expect(restored.clips).toBe(500_000);
+    expect(restored.trust).toBe(42);
+    expect(restored.funds).toBe(12_345);
+    // Nouveaux champs phase 2 : valeurs par défaut neutres, rien de perdu.
+    expect(restored.solarFarms).toBe(0);
+    expect(restored.harvesterDrones).toBe(0);
+    expect(restored.wireDrones).toBe(0);
+    expect(restored.clipFactories).toBe(0);
+    expect(restored.phase2Complete).toBe(false);
+  });
+
   it("rejette une sauvegarde sans version exploitable (donnée illisible)", () => {
     const restored = GameState.fromSavedData({ clips: 9999 });
     expect(restored.clips).toBe(0);
