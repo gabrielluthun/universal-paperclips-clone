@@ -3,6 +3,7 @@ import { SaveManager } from "../state/SaveManager";
 import { ComputeSystem } from "../systems/compute/ComputeSystem";
 import type { GameSystem } from "../systems/core/GameSystem";
 import { InvestmentSystem } from "../systems/invest/InvestmentSystem";
+import { LandSystem } from "../systems/land/LandSystem";
 import { MarketSystem } from "../systems/market/MarketSystem";
 import { ProductionSystem } from "../systems/production/ProductionSystem";
 import { ProjectSystem } from "../systems/projects/ProjectSystem";
@@ -35,8 +36,12 @@ export class Game {
   readonly investments: InvestmentSystem;
   readonly strategic: StrategicModelingSystem;
   readonly quantum: QuantumSystem;
+  readonly land: LandSystem;
 
-  private readonly simulationSystems: GameSystem[];
+  /** Systèmes actifs en phase 1 (business) ; gelés dès le passage en phase 2. */
+  private readonly phase1Systems: GameSystem[];
+  /** Systèmes actifs en phase 2 (Terre) et au-delà. */
+  private readonly phase2Systems: GameSystem[];
   private readonly saveManager = new SaveManager();
   private readonly renderer = new Renderer();
   private readonly titleScreen = new TitleScreen();
@@ -71,13 +76,15 @@ export class Game {
     this.investments = new InvestmentSystem(this.state);
     this.strategic = new StrategicModelingSystem(this.state);
     this.quantum = new QuantumSystem(this.state);
-    this.simulationSystems = [
+    this.land = new LandSystem(this.state);
+    this.phase1Systems = [
       this.production,
       this.market,
       this.compute,
       this.investments,
       this.quantum,
     ];
+    this.phase2Systems = [this.land];
 
     this.lifecycle = new GameLifecycle(this.state, this.saveManager, AUTOSAVE_MS);
     this.loop = new GameLoop(
@@ -114,8 +121,13 @@ export class Game {
     this.loop.start();
   }
 
+  /** Systèmes de simulation actifs pour la phase courante. */
+  private get activeSystems(): GameSystem[] {
+    return this.state.phase === 1 ? this.phase1Systems : this.phase2Systems;
+  }
+
   private updateSimulation(deltaMs: number): void {
-    for (const system of this.simulationSystems) {
+    for (const system of this.activeSystems) {
       system.update(deltaMs);
     }
 
