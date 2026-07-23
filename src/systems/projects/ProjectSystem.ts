@@ -1,15 +1,23 @@
 import type { GameState } from "../../state/GameState";
 import type { Project } from "../../projects/Project";
 import { createPhase1Projects } from "../../projects/data/phase1Projects";
+import { createPhase2Projects } from "../../projects/data/phase2Projects";
 
 /** Seuil de trombones avant d'ouvrir le panneau Projets. */
 export const PROJECTS_UNLOCK_CLIPS = 2000;
 
 export class ProjectSystem {
-  private readonly catalog: Project[];
+  private readonly phase1Catalog: Project[];
+  private readonly phase2Catalog: Project[];
 
   constructor(private readonly state: GameState) {
-    this.catalog = createPhase1Projects();
+    this.phase1Catalog = createPhase1Projects();
+    this.phase2Catalog = createPhase2Projects();
+  }
+
+  /** Catalogue actif pour la phase courante (la phase change en cours de partie). */
+  private get catalog(): Project[] {
+    return this.state.phase === 1 ? this.phase1Catalog : this.phase2Catalog;
   }
 
   /**
