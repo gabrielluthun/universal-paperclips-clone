@@ -39,11 +39,30 @@ describe("GameState", () => {
     expect(restored.hasCompletedProject("improvedWireExtrusion")).toBe(true);
   });
 
-  it("rejette une sauvegarde de mauvaise version", () => {
+  it("conserve la progression d'une sauvegarde de version antérieure (fusion au mieux, pas de reset)", () => {
     const restored = GameState.fromSavedData({
       version: SAVE_VERSION - 1,
       clips: 9999,
+      trust: 7,
     });
+    expect(restored.clips).toBe(9999);
+    expect(restored.trust).toBe(7);
+    expect(restored.version).toBe(SAVE_VERSION);
+  });
+
+  it("garde un joueur en phase 2 (ou 3) après un rafraîchissement, même si SAVE_VERSION a changé depuis", () => {
+    const restored = GameState.fromSavedData({
+      version: SAVE_VERSION - 1, // simule : save écrite juste avant un futur bump de version
+      phase: 2,
+      clips: 123_456_789,
+      funds: 42,
+    });
+    expect(restored.phase).toBe(2);
+    expect(restored.clips).toBe(123_456_789);
+  });
+
+  it("rejette une sauvegarde sans version exploitable (donnée illisible)", () => {
+    const restored = GameState.fromSavedData({ clips: 9999 });
     expect(restored.clips).toBe(0);
   });
 
