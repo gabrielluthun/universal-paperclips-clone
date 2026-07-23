@@ -1,3 +1,5 @@
+import { createLandFields } from "./fields/landFields";
+
 /** Transforme une sauvegarde brute d'une version vers la suivante. */
 export type SaveMigration = (
   data: Record<string, unknown>,
@@ -16,18 +18,17 @@ export type SaveMigration = (
  *   `GameState.test.ts` prouvant qu'une save de la version précédente
  *   conserve sa progression après migration.
  *
- * Exemple (phase 2, à décommenter/adapter le jour venu) :
- * ```
- * 6: (data) => ({
- *   ...data,
- *   matterRemaining: 1_000_000,
- *   harvesterDrones: 0,
- *   wireDrones: 0,
- *   version: 7,
- * }),
- * ```
+ * v6 → v7 : introduction de la phase 2 (Terre). Les vieilles saves n'ont
+ * aucun de ces champs ; on les injecte avec leurs valeurs par défaut neutres
+ * (`createLandFields()`), sans toucher au reste de la progression.
  */
-export const SAVE_MIGRATIONS: Record<number, SaveMigration> = {};
+export const SAVE_MIGRATIONS: Record<number, SaveMigration> = {
+  6: (data) => ({
+    ...data,
+    ...createLandFields(),
+    version: 7,
+  }),
+};
 
 /**
  * Applique séquentiellement les migrations connues jusqu'à `targetVersion`.
