@@ -1,4 +1,11 @@
-/** Version de la sauvegarde. S'incrémente lorsque des modifications sont apportées à la structure de l'état pour éviter les erreurs de désérialisation. */
+import { applyMigrations, SAVE_MIGRATIONS } from "./saveMigrations";
+
+/**
+ * Version de la sauvegarde. S'incrémente lorsque des modifications sont
+ * apportées à la structure de l'état. Chaque bump DOIT être accompagné d'une
+ * entrée dans `SAVE_MIGRATIONS` (voir `saveMigrations.ts`) pour que les
+ * sauvegardes existantes conservent leur progression au lieu d'être perdues.
+ */
 export const SAVE_VERSION = 6;
 
 /** État mutable de la partie — source de vérité pour tous les systèmes. */
@@ -95,26 +102,40 @@ export class GameState {
     return new GameState();
   }
 
-  /** Reconstruit un état depuis une sauvegarde JSON (fusion défensive). */
+  /**
+   * Reconstruit un état depuis une sauvegarde JSON.
+   *
+   * Ne réinitialise JAMAIS une sauvegarde valide simplement parce que sa
+   * version diffère : on fait remonter les données au mieux via
+   * `SAVE_MIGRATIONS`, puis on fusionne champ par champ (fusion défensive).
+   * Seules les données réellement illisibles (pas un objet, ou sans numéro
+   * de version exploitable) donnent un état neuf.
+   */
   static fromSavedData(raw: unknown): GameState {
     const state = GameState.createInitial();
     if (typeof raw !== "object" || raw === null) return state;
+    if (typeof (raw as { version?: unknown }).version !== "number") {
+      return state;
+    }
 
-    const data = raw as Partial<GameState> & {
+    const migrated = applyMigrations(
+      raw as Record<string, unknown>,
+      SAVE_MIGRATIONS,
+      SAVE_VERSION,
+    ) as Partial<GameState> & {
       version?: number;
       completedProjects?: string[];
       completedProjectIds?: string[];
     };
-    if (data.version !== SAVE_VERSION) return state;
 
     const {
       completedProjects: _legacy,
       completedProjectIds: _ids,
       ...rest
-    } = data;
+    } = migrated;
     Object.assign(state, rest);
 
-    const savedIds = data.completedProjectIds ?? data.completedProjects;
+    const savedIds = migrated.completedProjectIds ?? migrated.completedProjects;
     state.completedProjectIds = Array.isArray(savedIds) ? [...savedIds] : [];
 
     if (!Array.isArray(state.unlockedStrategyIds) || state.unlockedStrategyIds.length === 0) {
