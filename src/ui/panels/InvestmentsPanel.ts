@@ -35,7 +35,8 @@ export class InvestmentsPanel {
 
   render(model: RenderModel): void {
     const { state, investments } = model;
-    this.panel.hidden = !state.investmentsUnlocked;
+    // Investissements : propre à la phase 1.
+    this.panel.hidden = !state.investmentsUnlocked || state.phase !== 1;
 
     // Toujours formater les compteurs (slots de lissage stables).
     this.investFunds.textContent = NumberFormatter.formatMoney(

@@ -38,10 +38,12 @@ export class Game {
   readonly quantum: QuantumSystem;
   readonly land: LandSystem;
 
-  /** Systèmes actifs en phase 1 (business) ; gelés dès le passage en phase 2. */
-  private readonly phase1Systems: GameSystem[];
-  /** Systèmes actifs en phase 2 (Terre) et au-delà. */
-  private readonly phase2Systems: GameSystem[];
+  /** Systèmes actifs quelle que soit la phase (production, compute, quantique). */
+  private readonly alwaysActiveSystems: GameSystem[];
+  /** Systèmes « Affaires » (marché, investissements) : phase 1 seulement. */
+  private readonly businessSystems: GameSystem[];
+  /** Systèmes de la phase 2 (Terre) et au-delà. */
+  private readonly landSystems: GameSystem[];
   private readonly saveManager = new SaveManager();
   private readonly renderer = new Renderer();
   private readonly titleScreen = new TitleScreen();
@@ -77,14 +79,9 @@ export class Game {
     this.strategic = new StrategicModelingSystem(this.state);
     this.quantum = new QuantumSystem(this.state);
     this.land = new LandSystem(this.state);
-    this.phase1Systems = [
-      this.production,
-      this.market,
-      this.compute,
-      this.investments,
-      this.quantum,
-    ];
-    this.phase2Systems = [this.land];
+    this.alwaysActiveSystems = [this.production, this.compute, this.quantum];
+    this.businessSystems = [this.market, this.investments];
+    this.landSystems = [this.land];
 
     this.lifecycle = new GameLifecycle(this.state, this.saveManager, AUTOSAVE_MS);
     this.loop = new GameLoop(
@@ -121,9 +118,15 @@ export class Game {
     this.loop.start();
   }
 
-  /** Systèmes de simulation actifs pour la phase courante. */
+  /**
+   * Systèmes de simulation actifs pour la phase courante : production, compute
+   * et quantique restent actifs partout ; marché/investissements sont propres
+   * à la phase 1, la Terre (drones, usines...) à la phase 2 et au-delà.
+   */
   private get activeSystems(): GameSystem[] {
-    return this.state.phase === 1 ? this.phase1Systems : this.phase2Systems;
+    const phaseSpecific =
+      this.state.phase === 1 ? this.businessSystems : this.landSystems;
+    return [...this.alwaysActiveSystems, ...phaseSpecific];
   }
 
   private updateSimulation(deltaMs: number): void {
