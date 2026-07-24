@@ -320,4 +320,136 @@ describe("LandSystem", () => {
     expect(land.getPowerDemand()).toBe(200);
     expect(land.getPowerRatio()).toBe(1);
   });
+
+  describe("Informatique en essaim", () => {
+    function setupSwarmState() {
+      const state = GameState.createInitial();
+      state.powerGridUnlocked = true;
+      state.swarmComputingUnlocked = true;
+      state.harvesterDrones = 100;
+      state.wireDrones = 100; // essaim de 200, ratio 1:1 (pas de désorganisation)
+      state.solarFarms = 4; // 200 MW = demande exacte des 200 drones → powMod=1
+      state.sliderPos = 100; // tout Réflexion, pour maximiser la génération de cadeaux
+      return state;
+    }
+
+    it("calcule la taille de l'essaim comme la somme des drones", () => {
+      const state = setupSwarmState();
+      const land = new LandSystem(state);
+      expect(land.getSwarmSize()).toBe(200);
+    });
+
+    it("génère des cadeaux de calcul au rythme log(taille) × sliderPos par seconde", () => {
+      const state = setupSwarmState();
+      const land = new LandSystem(state);
+
+      land.update(250_000); // 250 s
+
+      expect(state.powMod).toBe(1);
+      expect(state.swarmGifts).toBe(2);
+      expect(state.giftBits).toBeCloseTo(7457.93, 1);
+    });
+
+    it("ne génère aucun cadeau si l'essaim est trop petit (0 ou 1 drone)", () => {
+      const state = setupSwarmState();
+      state.harvesterDrones = 1;
+      state.wireDrones = 0;
+      state.solarFarms = 1;
+      const land = new LandSystem(state);
+
+      land.update(250_000);
+
+      expect(state.swarmGifts).toBe(0);
+      expect(state.giftBits).toBe(0);
+    });
+
+    it("l'essaim s'ennuie si plus aucune matière n'est disponible à récolter", () => {
+      const state = setupSwarmState();
+      state.availableMatter = 0;
+      const land = new LandSystem(state);
+
+      land.update(400_000); // 400 s → boredomLevel = min(30000, 100×400) = 30000
+
+      expect(state.boredomActive).toBe(true);
+      // Aucun cadeau tant que l'essaim est ennuyé.
+      expect(state.swarmGifts).toBe(0);
+    });
+
+    it("distraire l'essaim (créativité) résout l'ennui", () => {
+      const state = setupSwarmState();
+      state.boredomActive = true;
+      state.boredomLevel = 30_000;
+      state.creativity = 10_000;
+      const land = new LandSystem(state);
+
+      expect(land.entertainSwarm()).toBe(true);
+      expect(state.boredomActive).toBe(false);
+      expect(state.boredomLevel).toBe(0);
+      expect(state.creativity).toBe(0);
+      expect(land.getEntertainSwarmCost()).toBe(20_000); // augmente de 10 000 à chaque usage
+    });
+
+    it("refuse de distraire l'essaim sans créativité suffisante", () => {
+      const state = setupSwarmState();
+      state.creativity = 9_999;
+      const land = new LandSystem(state);
+      expect(land.entertainSwarm()).toBe(false);
+    });
+
+    it("l'essaim se désorganise si le ratio récolteurs/fileurs dépasse 1,5", () => {
+      const state = setupSwarmState();
+      state.harvesterDrones = 1000;
+      state.wireDrones = 1;
+      state.solarFarms = 21; // 1050 MW ≥ 1001 MW demandés → powMod=1
+      const land = new LandSystem(state);
+
+      land.update(100_000); // 100 s → disorgCounter += min(ratio/100,1)×100 = 100
+
+      expect(state.disorgActive).toBe(true);
+      expect(state.swarmGifts).toBe(0);
+    });
+
+    it("synchroniser l'essaim (Yomi) résout la désorganisation", () => {
+      const state = setupSwarmState();
+      state.disorgActive = true;
+      state.disorgCounter = 100;
+      state.yomi = 5_000;
+      const land = new LandSystem(state);
+
+      expect(land.synchronizeSwarm()).toBe(true);
+      expect(state.disorgActive).toBe(false);
+      expect(state.disorgCounter).toBe(0);
+      expect(state.yomi).toBe(0);
+    });
+
+    it("refuse de synchroniser l'essaim sans Yomi suffisant", () => {
+      const state = setupSwarmState();
+      state.yomi = 4_999;
+      const land = new LandSystem(state);
+      expect(land.synchronizeSwarm()).toBe(false);
+    });
+
+    it("positionne le curseur Travail/Réflexion, borné entre 0 et 100", () => {
+      const state = setupSwarmState();
+      const land = new LandSystem(state);
+
+      land.setSliderPos(42);
+      expect(state.sliderPos).toBe(42);
+
+      land.setSliderPos(150);
+      expect(state.sliderPos).toBe(100);
+
+      land.setSliderPos(-10);
+      expect(state.sliderPos).toBe(0);
+    });
+
+    it("ignore le curseur tant que l'Informatique en essaim n'est pas débloquée", () => {
+      const state = GameState.createInitial();
+      state.sliderPos = 0;
+      const land = new LandSystem(state);
+
+      land.setSliderPos(75);
+      expect(state.sliderPos).toBe(0);
+    });
+  });
 });
