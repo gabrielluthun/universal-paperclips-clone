@@ -36,6 +36,9 @@ export type SaveMigration = (
  * les mécaniques d'ennui/désorganisation du swarm (`giftBits`,
  * `boredomLevel`, `boredomActive`, `entertainSwarmCost`, `disorgCounter`,
  * `disorgActive`).
+ *
+ * v11 → v12 : ajoute `droneBoost` et `factoryBoost` (Cohésion adverse /
+ * Chaîne d'approvisionnement auto-correctrice), à 1 par défaut (inactifs).
  */
 export const SAVE_MIGRATIONS: Record<number, SaveMigration> = {
   6: (data) => ({
@@ -89,6 +92,12 @@ export const SAVE_MIGRATIONS: Record<number, SaveMigration> = {
       version: 11,
     };
   },
+  11: (data) => ({
+    ...data,
+    droneBoost: 1,
+    factoryBoost: 1,
+    version: 12,
+  }),
 };
 
 /**

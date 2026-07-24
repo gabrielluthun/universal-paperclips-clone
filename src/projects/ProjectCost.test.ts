@@ -48,6 +48,24 @@ describe("ProjectCost", () => {
     expect(state.trust).toBe(100);
   });
 
+  it("gère un coût en trombones invendus (unsold)", () => {
+    const state = GameState.createInitial();
+    state.unsold = 1_000_000_000_000_000_000_000; // 1 sextillion
+    const cost = ProjectCost.of({ unsold: 1_000_000_000_000_000_000_000 });
+    expect(cost.canAfford(state)).toBe(true);
+    cost.deductFrom(state);
+    expect(state.unsold).toBe(0);
+  });
+
+  it("gère un coût en énergie stockée (storedPower)", () => {
+    const state = GameState.createInitial();
+    state.storedPower = 10_000_000;
+    const cost = ProjectCost.of({ storedPower: 10_000_000 });
+    expect(cost.canAfford(state)).toBe(true);
+    cost.deductFrom(state);
+    expect(state.storedPower).toBe(0);
+  });
+
   it("formate le coût pour l'affichage", () => {
     const cost = ProjectCost.of({ ops: 750, creativity: 50, yomi: 3000 });
     expect(cost.toDisplayString()).toBe("750 ops · 50 créat. · 3 000 yomi");

@@ -43,8 +43,19 @@ export interface LandFields {
   acquiredMatter: number;
   harvesterDrones: number;
   wireDrones: number;
-  /** Multiplicateur cumulatif d'efficacité des drones (vols en essaim). */
+  /**
+   * Multiplicateur cumulatif du taux de récolte/filage par drone (×100 puis
+   * ×1000 avec Anti-collision et Alignement — harvesterRate/wireDroneRate
+   * dans UP).
+   */
   droneEfficiencyBonus: number;
+  /**
+   * Cohésion adverse (Adversarial Cohesion) : passe de 1 à 2 une fois le
+   * projet acquis. Change la formule de récolte/filage, qui devient
+   * quadratique en nombre de drones (chaque drone ajouté double la
+   * production de chacun) au lieu de linéaire — droneBoost dans UP.
+   */
+  droneBoost: number;
 
   // --- Usines ---
   clipFactories: number;
@@ -54,8 +65,18 @@ export interface LandFields {
    * le coût courant par un facteur dépendant du palier atteint.
    */
   clipFactoryCost: number;
-  /** Multiplicateur cumulatif d'efficacité des usines. */
+  /**
+   * Multiplicateur cumulatif du taux de production par usine (×100 puis
+   * ×1000 avec Usines améliorées et Hypervéloces — factoryRate dans UP).
+   */
   factoryEfficiencyBonus: number;
+  /**
+   * Chaîne d'approvisionnement auto-correctrice : passe de 1 à 1000 une
+   * fois le projet acquis. Change la formule de production, qui devient
+   * quadratique en nombre d'usines (chaque usine ajoutée multiplie par
+   * 1000 la production de chacune) au lieu de linéaire — factoryBoost dans UP.
+   */
+  factoryBoost: number;
 
   // --- Informatique en essaim ---
   /** « Cadeaux » de capacité de calcul offerts par le swarm (swarmGifts dans UP). */
@@ -101,10 +122,12 @@ export function createLandFields(): LandFields {
     harvesterDrones: 0,
     wireDrones: 0,
     droneEfficiencyBonus: 1,
+    droneBoost: 1,
 
     clipFactories: 0,
     clipFactoryCost: 100_000_000,
     factoryEfficiencyBonus: 1,
+    factoryBoost: 1,
 
     swarmGifts: 0,
     giftBits: 0,

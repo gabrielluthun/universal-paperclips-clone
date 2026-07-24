@@ -46,6 +46,12 @@ const DISORG_THRESHOLD = 100;
 const SYNCH_SWARM_COST = 5_000;
 /** Incrément du coût de « Distraire le swarm » à chaque usage (créativité). */
 const ENTERTAIN_SWARM_COST_INCREMENT = 10_000;
+/**
+ * Gain de performance par seconde tant que l'alimentation est à 100 % et
+ * qu'Élan est acquis (momentum dans UP, +0,0001 par tick de 10 ms → +0,01/s).
+ * Non plafonné : powMod peut dépasser 1 indéfiniment.
+ */
+const MOMENTUM_GAIN_PER_SECOND = 0.01;
 
 /**
  * Multiplicateur appliqué au coût de l'Usine à chaque achat (fcmod dans UP).
@@ -289,6 +295,16 @@ export class LandSystem extends GameSystem {
     return (200 - this.state.sliderPos) / 100;
   }
 
+  /**
+   * Multiplicateur « boost » (dbsth/dbstw/fbst dans UP) : reste à 1 tant que
+   * Cohésion adverse / Chaîne auto-correctrice ne sont pas acquises. Une
+   * fois actif, la production devient quadratique en nombre d'unités
+   * (chaque unité ajoutée multiplie la production de toutes les autres).
+   */
+  private getBoostMultiplier(boost: number, count: number): number {
+    return boost > 1 ? boost * count : 1;
+  }
+
   override update(deltaMs: number): void {
     const s = this.state;
     if (!s.powerGridUnlocked) return;
@@ -306,12 +322,18 @@ export class LandSystem extends GameSystem {
       const capacity = this.getBatteryCapacity();
       s.storedPower = Math.min(capacity, s.storedPower + surplusEnergy);
       if (s.powMod < 1) s.powMod = 1;
+      if (s.momentumUnlocked) s.powMod += MOMENTUM_GAIN_PER_SECOND * dt;
     } else if (demand > 0) {
       const deficitEnergy = (demand - supply) * dt;
       const drawnFromBattery = Math.min(deficitEnergy, s.storedPower);
       s.storedPower -= drawnFromBattery;
       const unmetEnergy = deficitEnergy - drawnFromBattery;
-      s.powMod = unmetEnergy > 0 ? Math.max(0, 1 - unmetEnergy / (demand * dt)) : 1;
+      if (unmetEnergy > 0) {
+        s.powMod = Math.max(0, 1 - unmetEnergy / (demand * dt));
+      } else {
+        s.powMod = 1;
+        if (s.momentumUnlocked) s.powMod += MOMENTUM_GAIN_PER_SECOND * dt;
+      }
     } else {
       s.powMod = 1;
     }
@@ -321,6 +343,7 @@ export class LandSystem extends GameSystem {
     if (s.harvesterDronesUnlocked) {
       const harvestRate =
         s.harvesterDrones *
+        this.getBoostMultiplier(s.droneBoost, s.harvesterDrones) *
         MATTER_PER_HARVESTER_DRONE *
         s.droneEfficiencyBonus *
         s.powMod *
@@ -336,6 +359,7 @@ export class LandSystem extends GameSystem {
       // ressource limitante de cette conversion.
       const wireRate =
         s.wireDrones *
+        this.getBoostMultiplier(s.droneBoost, s.wireDrones) *
         WIRE_PER_WIRE_DRONE *
         s.droneEfficiencyBonus *
         s.powMod *
@@ -349,7 +373,11 @@ export class LandSystem extends GameSystem {
       // Contrairement aux drones, la formule UP n'applique pas le facteur
       // Travail/Réflexion (sliderPos) à la production des usines.
       const factoryOutputRate =
-        s.clipFactories * CLIPS_PER_FACTORY * s.factoryEfficiencyBonus * s.powMod;
+        s.clipFactories *
+        this.getBoostMultiplier(s.factoryBoost, s.clipFactories) *
+        CLIPS_PER_FACTORY *
+        s.factoryEfficiencyBonus *
+        s.powMod;
       const produced = Math.min(factoryOutputRate * dt, s.wire);
       s.wire -= produced;
       s.clips += produced;

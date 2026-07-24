@@ -452,4 +452,125 @@ describe("LandSystem", () => {
       expect(state.sliderPos).toBe(0);
     });
   });
+
+  describe("bonus d'efficacité (vol en essaim, usines)", () => {
+    it("droneEfficiencyBonus multiplie linéairement la récolte et le filage", () => {
+      const state = GameState.createInitial();
+      state.powerGridUnlocked = true;
+      state.harvesterDronesUnlocked = true;
+      state.solarFarms = 1; // 50 MW
+      state.harvesterDrones = 10; // 10 MW < 50 MW dispo
+      state.droneEfficiencyBonus = 100; // Anti-collision acquise
+      const land = new LandSystem(state);
+
+      land.update(1000);
+
+      const expected = 10 * 26_180_337 * 2 * 100;
+      expect(state.acquiredMatter).toBeCloseTo(expected, 0);
+    });
+
+    it("droneBoost>1 rend la récolte quadratique en nombre de drones (Cohésion adverse)", () => {
+      const state = GameState.createInitial();
+      state.powerGridUnlocked = true;
+      state.harvesterDronesUnlocked = true;
+      state.solarFarms = 1; // 50 MW
+      state.harvesterDrones = 10;
+      state.droneBoost = 2; // Cohésion adverse acquise
+      const land = new LandSystem(state);
+
+      land.update(1000);
+
+      // dbsth = droneBoost × harvesterDrones = 2×10 = 20 → mtr = 10×20×rate×2(workFactor)
+      const expected = 10 * (2 * 10) * 26_180_337 * 2;
+      expect(state.acquiredMatter).toBeCloseTo(expected, 0);
+    });
+
+    it("factoryEfficiencyBonus multiplie linéairement la production des Usines", () => {
+      const state = GameState.createInitial();
+      state.powerGridUnlocked = true;
+      state.clipFactoriesUnlocked = true;
+      state.solarFarms = 5;
+      state.clipFactories = 1;
+      state.wire = 1_000_000_000_000;
+      state.factoryEfficiencyBonus = 100; // Usines améliorées acquises
+      const initialClips = state.clips;
+      const land = new LandSystem(state);
+
+      land.update(1000);
+
+      const expected = 1 * 1_000_000_000 * 100;
+      expect(state.clips).toBeCloseTo(initialClips + expected, 0);
+    });
+
+    it("factoryBoost>1 rend la production quadratique en nombre d'usines (auto-correctrice)", () => {
+      const state = GameState.createInitial();
+      state.powerGridUnlocked = true;
+      state.clipFactoriesUnlocked = true;
+      state.solarFarms = 12; // 600 MW = demande exacte de 3 usines
+      state.clipFactories = 3;
+      state.wire = 1_000_000_000_000_000;
+      state.factoryBoost = 1_000; // Chaîne auto-correctrice acquise
+      const initialClips = state.clips;
+      const land = new LandSystem(state);
+
+      land.update(1000);
+
+      // fbst = factoryBoost × clipFactories = 1000×3 = 3000 → 3×3000×rate
+      const expected = 3 * (1_000 * 3) * 1_000_000_000;
+      expect(state.clips).toBeCloseTo(initialClips + expected, 0);
+    });
+  });
+
+  describe("Élan (momentum)", () => {
+    it("augmente powMod de 0,01/s tant que l'alimentation est à 100 %", () => {
+      const state = GameState.createInitial();
+      state.powerGridUnlocked = true;
+      state.momentumUnlocked = true;
+      state.solarFarms = 1; // 50 MW ≥ 0 MW demandés (aucun drone/usine)
+      const land = new LandSystem(state);
+
+      land.update(10_000); // 10 s
+
+      expect(state.powMod).toBeCloseTo(1 + 0.01 * 10, 5);
+    });
+
+    it("continue de s'accumuler lorsqu'un déficit est entièrement comblé par la batterie", () => {
+      const state = GameState.createInitial();
+      state.powerGridUnlocked = true;
+      state.momentumUnlocked = true;
+      state.solarFarms = 1; // 50 MW
+      state.harvesterDrones = 60; // demande 60 MW, déficit 10 MW
+      state.batteries = 1;
+      state.storedPower = 5_000; // largement de quoi couvrir le déficit
+      const land = new LandSystem(state);
+
+      land.update(10_000); // 10 s
+
+      expect(state.powMod).toBeCloseTo(1 + 0.01 * 10, 5);
+    });
+
+    it("ne s'accumule pas si l'alimentation est insuffisante", () => {
+      const state = GameState.createInitial();
+      state.powerGridUnlocked = true;
+      state.momentumUnlocked = true;
+      state.solarFarms = 1; // 50 MW
+      state.harvesterDrones = 100; // demande 100 MW, batterie vide
+      const land = new LandSystem(state);
+
+      land.update(10_000);
+
+      expect(state.powMod).toBeCloseTo(0.5, 5);
+    });
+
+    it("n'a aucun effet tant que le projet Élan n'est pas acquis", () => {
+      const state = GameState.createInitial();
+      state.powerGridUnlocked = true;
+      state.solarFarms = 1;
+      const land = new LandSystem(state);
+
+      land.update(10_000);
+
+      expect(state.powMod).toBe(1);
+    });
+  });
 });

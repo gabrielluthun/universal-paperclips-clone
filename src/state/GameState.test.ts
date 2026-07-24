@@ -167,6 +167,23 @@ describe("GameState", () => {
     ).toBeUndefined();
   });
 
+  it("migre une save v11 en initialisant droneBoost et factoryBoost à 1 (inactifs)", () => {
+    const v11Save = {
+      version: 11,
+      phase: 2,
+      harvesterDrones: 600,
+      clipFactories: 15,
+    };
+
+    const restored = GameState.fromSavedData(v11Save);
+
+    expect(restored.version).toBe(SAVE_VERSION);
+    expect(restored.harvesterDrones).toBe(600);
+    expect(restored.clipFactories).toBe(15);
+    expect(restored.droneBoost).toBe(1);
+    expect(restored.factoryBoost).toBe(1);
+  });
+
   it("rejette une sauvegarde sans version exploitable (donnée illisible)", () => {
     const restored = GameState.fromSavedData({ clips: 9999 });
     expect(restored.clips).toBe(0);

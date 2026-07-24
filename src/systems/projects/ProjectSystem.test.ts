@@ -260,6 +260,123 @@ describe("ProjectSystem", () => {
     expect(state.swarmComputingUnlocked).toBe(true);
   });
 
+  it("phase 2 : Vol en essaim anti-collision/alignement/cohésion adverse débloqués par seuil de drones", () => {
+    const state = GameState.createInitial();
+    state.phase = 2;
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.ops = 100_000;
+    state.yomi = 12_000;
+    state.harvesterDrones = 250;
+    state.wireDrones = 249; // 499 : pas encore assez pour anti-collision
+    const projects = new ProjectSystem(state);
+
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "droneFlockingCollisionAvoidance",
+    );
+
+    state.wireDrones = 250; // 500
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "droneFlockingCollisionAvoidance",
+    );
+    expect(projects.activateProject("droneFlockingCollisionAvoidance")).toBe(
+      true,
+    );
+    expect(state.droneEfficiencyBonus).toBe(100);
+
+    // Alignement nécessite 5 000 drones.
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "droneFlockingAlignment",
+    );
+    state.harvesterDrones = 2_500;
+    state.wireDrones = 2_500;
+    state.ops = 100_000;
+    expect(projects.activateProject("droneFlockingAlignment")).toBe(true);
+    expect(state.droneEfficiencyBonus).toBe(100_000); // cumulatif ×100 puis ×1000
+
+    // Cohésion adverse nécessite 50 000 drones.
+    state.harvesterDrones = 25_000;
+    state.wireDrones = 25_000;
+    expect(projects.activateProject("droneFlockingAdversarialCohesion")).toBe(
+      true,
+    );
+    expect(state.droneBoost).toBe(2);
+  });
+
+  it("phase 2 : Usines améliorées/hypervéloces/auto-correctrice débloquées par seuil d'usines", () => {
+    const state = GameState.createInitial();
+    state.phase = 2;
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.ops = 100_000;
+    state.unsold = 1_000_000_000_000_000_000_000;
+    state.clipFactories = 9;
+    const projects = new ProjectSystem(state);
+
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "upgradedFactories",
+    );
+    state.clipFactories = 10;
+    expect(projects.activateProject("upgradedFactories")).toBe(true);
+    expect(state.factoryEfficiencyBonus).toBe(100);
+
+    state.clipFactories = 20;
+    state.ops = 100_000;
+    expect(projects.activateProject("hyperspeedFactories")).toBe(true);
+    expect(state.factoryEfficiencyBonus).toBe(100_000);
+
+    state.clipFactories = 50;
+    expect(projects.activateProject("selfCorrectingSupplyChain")).toBe(true);
+    expect(state.factoryBoost).toBe(1_000);
+    expect(state.unsold).toBe(0);
+  });
+
+  it("phase 2 : Élan débloqué à partir de 50 Fermes solaires", () => {
+    const state = GameState.createInitial();
+    state.phase = 2;
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.creativity = 30_000;
+    state.solarFarms = 49;
+    const projects = new ProjectSystem(state);
+
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "momentum",
+    );
+
+    state.solarFarms = 50;
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "momentum",
+    );
+    expect(projects.activateProject("momentum")).toBe(true);
+    expect(state.creativity).toBe(0);
+    expect(state.momentumUnlocked).toBe(true);
+  });
+
+  it("phase 2 : Exploration spatiale débloquée une fois la matière épuisée, termine la phase 2", () => {
+    const state = GameState.createInitial();
+    state.phase = 2;
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.ops = 120_000;
+    state.storedPower = 10_000_000;
+    state.unsold = Math.pow(10, 27) * 5;
+    state.availableMatter = 1; // pas encore épuisée
+    const projects = new ProjectSystem(state);
+
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "spaceExploration",
+    );
+
+    state.availableMatter = 0;
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "spaceExploration",
+    );
+    expect(projects.activateProject("spaceExploration")).toBe(true);
+    expect(state.ops).toBe(0);
+    expect(state.storedPower).toBe(0);
+    expect(state.unsold).toBe(0);
+    expect(state.phase).toBe(3);
+    expect(state.phase2Complete).toBe(true);
+    expect(state.phase2EndAcknowledged).toBe(false);
+  });
+
   it("les projets phase 2 restent invisibles en phase 1", () => {
     const state = GameState.createInitial();
     state.clips = PROJECTS_UNLOCK_CLIPS;
