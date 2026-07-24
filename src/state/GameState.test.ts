@@ -147,6 +147,26 @@ describe("GameState", () => {
     expect(restored.clipFactoryCost).toBe(100_000_000);
   });
 
+  it("migre une save v10 en renommant swarmCompute → swarmGifts et en initialisant l'ennui/désorganisation", () => {
+    const v10Save = {
+      version: 10,
+      phase: 2,
+      swarmCompute: 42,
+    };
+
+    const restored = GameState.fromSavedData(v10Save);
+
+    expect(restored.version).toBe(SAVE_VERSION);
+    expect(restored.swarmGifts).toBe(42);
+    expect(restored.giftBits).toBe(0);
+    expect(restored.boredomActive).toBe(false);
+    expect(restored.disorgActive).toBe(false);
+    expect(restored.entertainSwarmCost).toBe(10_000);
+    expect(
+      (restored as unknown as { swarmCompute?: number }).swarmCompute,
+    ).toBeUndefined();
+  });
+
   it("rejette une sauvegarde sans version exploitable (donnée illisible)", () => {
     const restored = GameState.fromSavedData({ clips: 9999 });
     expect(restored.clips).toBe(0);
