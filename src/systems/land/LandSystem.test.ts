@@ -100,4 +100,72 @@ describe("LandSystem", () => {
 
     expect(state.acquiredMatter).toBe(0);
   });
+
+  it("calcule le coût des drones selon la formule UP (1M, 4.76M, 11.84M…)", () => {
+    const state = GameState.createInitial();
+    state.harvesterDronesUnlocked = true;
+    state.wireDronesUnlocked = true;
+    const land = new LandSystem(state);
+
+    expect(land.getNextHarvesterDroneCost()).toBe(1_000_000);
+    expect(land.getNextWireDroneCost()).toBe(1_000_000);
+
+    state.harvesterDrones = 1;
+    expect(land.getNextHarvesterDroneCost()).toBeCloseTo(4_756_828, 0);
+
+    state.wireDrones = 2;
+    expect(land.getNextWireDroneCost()).toBeCloseTo(11_844_666, 0);
+  });
+
+  it("achète un Drone récolteur ou fileur en dépensant des trombones", () => {
+    const state = GameState.createInitial();
+    state.harvesterDronesUnlocked = true;
+    state.clips = 1_000_000;
+    const land = new LandSystem(state);
+
+    expect(land.purchaseHarvesterDrone()).toBe(true);
+    expect(state.harvesterDrones).toBe(1);
+    expect(state.clips).toBe(0);
+
+    expect(land.purchaseWireDrone()).toBe(false); // pas débloqué
+    state.wireDronesUnlocked = true;
+    state.clips = 999_999;
+    expect(land.purchaseWireDrone()).toBe(false); // pas assez de trombones
+    state.clips = 1_000_000;
+    expect(land.purchaseWireDrone()).toBe(true);
+    expect(state.wireDrones).toBe(1);
+  });
+
+  it("convertit la matière acquise en fil via les Drones fileurs", () => {
+    const state = GameState.createInitial();
+    state.powerGridUnlocked = true;
+    state.wireDronesUnlocked = true;
+    state.solarFarms = 1; // 50 MW
+    state.wireDrones = 5; // demande 5 MW < 50 MW dispo
+    state.acquiredMatter = 100_000_000_000; // large stock, non limitant
+    const initialWire = state.wire;
+    const land = new LandSystem(state);
+
+    land.update(1000);
+
+    const expectedConverted = 5 * 3_235_700_000;
+    expect(state.wire).toBeCloseTo(initialWire + expectedConverted, 0);
+    expect(state.acquiredMatter).toBeCloseTo(100_000_000_000 - expectedConverted, 0);
+  });
+
+  it("limite la conversion en fil à la matière acquise disponible", () => {
+    const state = GameState.createInitial();
+    state.powerGridUnlocked = true;
+    state.wireDronesUnlocked = true;
+    state.solarFarms = 1;
+    state.wireDrones = 5;
+    state.acquiredMatter = 10; // très peu de stock
+    const initialWire = state.wire;
+    const land = new LandSystem(state);
+
+    land.update(1000);
+
+    expect(state.acquiredMatter).toBe(0);
+    expect(state.wire).toBeCloseTo(initialWire + 10, 5);
+  });
 });
