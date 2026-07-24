@@ -51,4 +51,53 @@ describe("LandSystem", () => {
     state.clips = 9_999_999;
     expect(land.purchaseSolarFarm()).toBe(false);
   });
+
+  it("récolte de la matière à pleine puissance quand l'électricité suffit", () => {
+    const state = GameState.createInitial();
+    state.powerGridUnlocked = true;
+    state.harvesterDronesUnlocked = true;
+    state.solarFarms = 1; // 50 MW
+    state.harvesterDrones = 10; // demande 10 MW < 50 MW dispo
+    const initialMatter = state.availableMatter;
+    const land = new LandSystem(state);
+
+    land.update(1000); // 1 seconde
+
+    expect(land.getPowerRatio()).toBe(1);
+    const expectedHarvested = 10 * 5_235_700_000;
+    expect(state.acquiredMatter).toBeCloseTo(expectedHarvested, 0);
+    expect(state.availableMatter).toBeCloseTo(initialMatter - expectedHarvested, 0);
+    // Surplus de puissance (50 - 10 MW) banké.
+    expect(state.powerBanked).toBeCloseTo(40, 5);
+  });
+
+  it("ralentit la récolte quand la puissance ne suffit pas pour tous les drones", () => {
+    const state = GameState.createInitial();
+    state.powerGridUnlocked = true;
+    state.harvesterDronesUnlocked = true;
+    state.solarFarms = 1; // 50 MW
+    state.harvesterDrones = 100; // demande 100 MW > 50 MW dispo → ratio 0.5
+    const land = new LandSystem(state);
+
+    expect(land.getPowerRatio()).toBeCloseTo(0.5, 5);
+
+    land.update(1000);
+
+    const expectedHarvested = 100 * 5_235_700_000 * 0.5;
+    expect(state.acquiredMatter).toBeCloseTo(expectedHarvested, 0);
+    // Puissance entièrement consommée par les drones : rien à stocker.
+    expect(state.powerBanked).toBe(0);
+  });
+
+  it("ne récolte rien tant que les Drones récolteurs ne sont pas débloqués", () => {
+    const state = GameState.createInitial();
+    state.powerGridUnlocked = true;
+    state.solarFarms = 1;
+    state.harvesterDrones = 5;
+    const land = new LandSystem(state);
+
+    land.update(1000);
+
+    expect(state.acquiredMatter).toBe(0);
+  });
 });
