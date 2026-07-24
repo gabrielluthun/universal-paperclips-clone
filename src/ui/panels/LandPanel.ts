@@ -29,9 +29,6 @@ export class LandPanel {
   private readonly btnBuySolarFarm100 = requireElement<HTMLButtonElement>(
     "btn-buy-solar-farm-100",
   );
-  private readonly btnDisassembleSolarFarm = requireElement<HTMLButtonElement>(
-    "btn-disassemble-solar-farm",
-  );
   private readonly btnDisassembleAllSolarFarms =
     requireElement<HTMLButtonElement>("btn-disassemble-all-solar-farms");
   private readonly batteries = requireElement<HTMLSpanElement>("batteries");
@@ -45,9 +42,6 @@ export class LandPanel {
     requireElement<HTMLButtonElement>("btn-buy-battery-10");
   private readonly btnBuyBattery100 =
     requireElement<HTMLButtonElement>("btn-buy-battery-100");
-  private readonly btnDisassembleBattery = requireElement<HTMLButtonElement>(
-    "btn-disassemble-battery",
-  );
   private readonly btnDisassembleAllBatteries =
     requireElement<HTMLButtonElement>("btn-disassemble-all-batteries");
 
@@ -78,8 +72,6 @@ export class LandPanel {
   private readonly btnBuyHarvesterDrone100 = requireElement<HTMLButtonElement>(
     "btn-buy-harvester-drone-100",
   );
-  private readonly btnDisassembleHarvesterDrone =
-    requireElement<HTMLButtonElement>("btn-disassemble-harvester-drone");
   private readonly btnDisassembleAllHarvesterDrones =
     requireElement<HTMLButtonElement>("btn-disassemble-all-harvester-drones");
   private readonly wireDrones = requireElement<HTMLSpanElement>("wire-drones");
@@ -93,9 +85,6 @@ export class LandPanel {
   );
   private readonly btnBuyWireDrone100 = requireElement<HTMLButtonElement>(
     "btn-buy-wire-drone-100",
-  );
-  private readonly btnDisassembleWireDrone = requireElement<HTMLButtonElement>(
-    "btn-disassemble-wire-drone",
   );
   private readonly btnDisassembleAllWireDrones =
     requireElement<HTMLButtonElement>("btn-disassemble-all-wire-drones");
@@ -120,8 +109,6 @@ export class LandPanel {
   private readonly btnBuyClipFactory100 = requireElement<HTMLButtonElement>(
     "btn-buy-clip-factory-100",
   );
-  private readonly btnDisassembleClipFactory =
-    requireElement<HTMLButtonElement>("btn-disassemble-clip-factory");
   private readonly btnDisassembleAllClipFactories =
     requireElement<HTMLButtonElement>("btn-disassemble-all-clip-factories");
 
@@ -174,7 +161,6 @@ export class LandPanel {
     this.btnBuySolarFarm.disabled = !canBuyFarm;
     this.btnBuySolarFarm10.disabled = !canBuyFarm;
     this.btnBuySolarFarm100.disabled = !canBuyFarm;
-    this.btnDisassembleSolarFarm.disabled = state.solarFarms < 1;
     this.btnDisassembleAllSolarFarms.disabled = state.solarFarms < 1;
 
     this.batteries.textContent = NumberFormatter.formatInteger(state.batteries);
@@ -189,7 +175,6 @@ export class LandPanel {
     this.btnBuyBattery.disabled = !canBuyBattery;
     this.btnBuyBattery10.disabled = !canBuyBattery;
     this.btnBuyBattery100.disabled = !canBuyBattery;
-    this.btnDisassembleBattery.disabled = state.batteries < 1;
     this.btnDisassembleAllBatteries.disabled = state.batteries < 1;
 
     const showDrones =
@@ -216,7 +201,6 @@ export class LandPanel {
     this.btnBuyHarvesterDrone.disabled = !canBuyHarvester;
     this.btnBuyHarvesterDrone10.disabled = !canBuyHarvester;
     this.btnBuyHarvesterDrone100.disabled = !canBuyHarvester;
-    this.btnDisassembleHarvesterDrone.disabled = state.harvesterDrones < 1;
     this.btnDisassembleAllHarvesterDrones.disabled = state.harvesterDrones < 1;
 
     this.wireDrones.textContent = NumberFormatter.formatInteger(
@@ -228,7 +212,6 @@ export class LandPanel {
     this.btnBuyWireDrone.disabled = !canBuyWire;
     this.btnBuyWireDrone10.disabled = !canBuyWire;
     this.btnBuyWireDrone100.disabled = !canBuyWire;
-    this.btnDisassembleWireDrone.disabled = state.wireDrones < 1;
     this.btnDisassembleAllWireDrones.disabled = state.wireDrones < 1;
 
     this.factoriesPanel.hidden = !onEarth || !state.clipFactoriesUnlocked;
@@ -244,7 +227,6 @@ export class LandPanel {
     this.btnBuyClipFactory.disabled = !canBuyFactory;
     this.btnBuyClipFactory10.disabled = !canBuyFactory;
     this.btnBuyClipFactory100.disabled = !canBuyFactory;
-    this.btnDisassembleClipFactory.disabled = state.clipFactories < 1;
     this.btnDisassembleAllClipFactories.disabled = state.clipFactories < 1;
 
     this.swarmPanel.hidden = !onEarth || !state.swarmComputingUnlocked;
