@@ -1,4 +1,9 @@
 import type { GameState } from "../../state/GameState";
+import {
+  baApplyRate,
+  baFromPow,
+  baMulFloat,
+} from "../../util/BigAmount";
 import { GameSystem } from "../core/GameSystem";
 
 /**
@@ -7,7 +12,7 @@ import { GameSystem } from "../core/GameSystem";
  * contient que les fonctions) : coûts, taux de production et puissance.
  */
 /** Coût de la première ferme (farmLevel = 0). */
-const INITIAL_SOLAR_FARM_COST = 10_000_000;
+const INITIAL_SOLAR_FARM_COST = 10_000_000n;
 /** Exposant et facteur de la formule UP : (n+1)^2.78 × 1e8 pour n ≥ 1. */
 const SOLAR_FARM_COST_EXPONENT = 2.78;
 const SOLAR_FARM_COST_FACTOR = 100_000_000;
@@ -30,7 +35,7 @@ const DRONE_COST_EXPONENT = 2.25;
 /** Capacité de stockage par Batterie (MW·s) — batterySize = 10000 dans UP. */
 const BATTERY_CAPACITY_PER_UNIT = 10_000;
 /** Coût de la première Batterie. */
-const INITIAL_BATTERY_COST = 1_000_000;
+const INITIAL_BATTERY_COST = 1_000_000n;
 /** Formule UP du coût des Batteries suivantes : (n+1)^2.54 × 1e7. */
 const BATTERY_COST_EXPONENT = 2.54;
 const BATTERY_COST_FACTOR = 10_000_000;
@@ -74,6 +79,11 @@ function getFactoryCostMultiplier(newLevel: number): number {
  * fil des étapes du plan phase 2.
  */
 export class LandSystem extends GameSystem {
+  /** Accumulateurs fractionnaires pour les débits float → bigint. */
+  private harvestFrac = 0;
+  private wireFrac = 0;
+  private factoryFrac = 0;
+
   constructor(state: GameState) {
     super(state);
   }
@@ -82,10 +92,10 @@ export class LandSystem extends GameSystem {
    * Coût (en trombones) de la prochaine Ferme solaire.
    * Formule UP : 10M à 0 ferme, puis Math.pow(solarFarms+1, 2.78)*1e8.
    */
-  getNextSolarFarmCost(): number {
+  getNextSolarFarmCost(): bigint {
     const owned = this.state.solarFarms;
     if (owned === 0) return INITIAL_SOLAR_FARM_COST;
-    return Math.pow(owned + 1, SOLAR_FARM_COST_EXPONENT) * SOLAR_FARM_COST_FACTOR;
+    return baFromPow(owned + 1, SOLAR_FARM_COST_EXPONENT, SOLAR_FARM_COST_FACTOR);
   }
 
   purchaseSolarFarm(): boolean {
@@ -99,10 +109,10 @@ export class LandSystem extends GameSystem {
   }
 
   /** Coût (en trombones) de la prochaine Batterie. Formule UP : (n+1)^2.54 × 1e7. */
-  getNextBatteryCost(): number {
+  getNextBatteryCost(): bigint {
     const owned = this.state.batteries;
     if (owned === 0) return INITIAL_BATTERY_COST;
-    return Math.pow(owned + 1, BATTERY_COST_EXPONENT) * BATTERY_COST_FACTOR;
+    return baFromPow(owned + 1, BATTERY_COST_EXPONENT, BATTERY_COST_FACTOR);
   }
 
   purchaseBattery(): boolean {
@@ -121,9 +131,11 @@ export class LandSystem extends GameSystem {
   }
 
   /** Coût (en trombones) du prochain Drone récolteur. */
-  getNextHarvesterDroneCost(): number {
-    return Math.round(
-      Math.pow(this.state.harvesterDrones + 1, DRONE_COST_EXPONENT) * DRONE_COST_BASE,
+  getNextHarvesterDroneCost(): bigint {
+    return baFromPow(
+      this.state.harvesterDrones + 1,
+      DRONE_COST_EXPONENT,
+      DRONE_COST_BASE,
     );
   }
 
@@ -138,9 +150,11 @@ export class LandSystem extends GameSystem {
   }
 
   /** Coût (en trombones) du prochain Drone fileur. */
-  getNextWireDroneCost(): number {
-    return Math.round(
-      Math.pow(this.state.wireDrones + 1, DRONE_COST_EXPONENT) * DRONE_COST_BASE,
+  getNextWireDroneCost(): bigint {
+    return baFromPow(
+      this.state.wireDrones + 1,
+      DRONE_COST_EXPONENT,
+      DRONE_COST_BASE,
     );
   }
 
@@ -155,7 +169,7 @@ export class LandSystem extends GameSystem {
   }
 
   /** Coût (en trombones) de la prochaine Usine (valeur persistée, formule UP non fermée). */
-  getNextClipFactoryCost(): number {
+  getNextClipFactoryCost(): bigint {
     return this.state.clipFactoryCost;
   }
 
@@ -166,7 +180,10 @@ export class LandSystem extends GameSystem {
     if (s.clips < cost) return false;
     s.clips -= cost;
     s.clipFactories += 1;
-    s.clipFactoryCost *= getFactoryCostMultiplier(s.clipFactories);
+    s.clipFactoryCost = baMulFloat(
+      s.clipFactoryCost,
+      getFactoryCostMultiplier(s.clipFactories),
+    );
     return true;
   }
 
@@ -221,7 +238,7 @@ export class LandSystem extends GameSystem {
     const s = this.state;
     const d = this.getSwarmSize();
 
-    if (s.availableMatter <= 0 && d >= 1) {
+    if (s.availableMatter <= 0n && d >= 1) {
       s.boredomLevel = Math.min(BOREDOM_THRESHOLD, s.boredomLevel + 100 * dt);
     } else if (s.boredomLevel > 0) {
       s.boredomLevel = Math.max(0, s.boredomLevel - 100 * dt);
@@ -348,9 +365,15 @@ export class LandSystem extends GameSystem {
         s.droneEfficiencyBonus *
         s.powMod *
         workFactor;
-      const harvested = Math.min(harvestRate * dt, s.availableMatter);
-      s.availableMatter -= harvested;
-      s.acquiredMatter += harvested;
+      const harvested = baApplyRate(
+        s.availableMatter,
+        harvestRate,
+        dt,
+        this.harvestFrac,
+      );
+      s.availableMatter = harvested.stock;
+      s.acquiredMatter += harvested.moved;
+      this.harvestFrac = harvested.frac;
     }
 
     if (s.wireDronesUnlocked) {
@@ -364,9 +387,15 @@ export class LandSystem extends GameSystem {
         s.droneEfficiencyBonus *
         s.powMod *
         workFactor;
-      const converted = Math.min(wireRate * dt, s.acquiredMatter);
-      s.acquiredMatter -= converted;
-      s.wire += converted;
+      const converted = baApplyRate(
+        s.acquiredMatter,
+        wireRate,
+        dt,
+        this.wireFrac,
+      );
+      s.acquiredMatter = converted.stock;
+      s.wire += converted.moved;
+      this.wireFrac = converted.frac;
     }
 
     if (s.clipFactoriesUnlocked) {
@@ -378,10 +407,16 @@ export class LandSystem extends GameSystem {
         CLIPS_PER_FACTORY *
         s.factoryEfficiencyBonus *
         s.powMod;
-      const produced = Math.min(factoryOutputRate * dt, s.wire);
-      s.wire -= produced;
-      s.clips += produced;
-      s.unsold += produced;
+      const produced = baApplyRate(
+        s.wire,
+        factoryOutputRate,
+        dt,
+        this.factoryFrac,
+      );
+      s.wire = produced.stock;
+      s.clips += produced.moved;
+      s.unsold += produced.moved;
+      this.factoryFrac = produced.frac;
     }
 
     if (s.swarmComputingUnlocked) {

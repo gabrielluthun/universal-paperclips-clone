@@ -22,7 +22,7 @@ export class ComputeSystem extends GameSystem {
    */
   grantTrustForProductionMilestones(): void {
     const s = this.state;
-    while (s.clips >= s.nextTrust) {
+    while (s.clips >= BigInt(s.nextTrust)) {
       s.trust += 1;
       const next = s.trustFibA + s.trustFibB;
       s.trustFibA = s.trustFibB;

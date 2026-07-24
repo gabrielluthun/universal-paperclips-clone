@@ -24,20 +24,21 @@ export class ProductionSystem extends GameSystem {
   produceClips(count: number): number {
     if (this.isProductionHalted()) return 0;
     const state = this.state;
-    const made = Math.min(count, Math.floor(state.wire));
-    if (made <= 0) return 0;
+    const wanted = BigInt(Math.max(0, Math.floor(count)));
+    const made = wanted < state.wire ? wanted : state.wire;
+    if (made <= 0n) return 0;
     state.clips += made;
     state.unsold += made;
     state.wire -= made;
     this.compute.grantTrustForProductionMilestones();
-    return made;
+    return Number(made);
   }
 
   purchaseWireSpool(): boolean {
     const state = this.state;
     if (state.funds < state.wireCost) return false;
     state.funds -= state.wireCost;
-    state.wire += state.wirePerSpool;
+    state.wire += BigInt(state.wirePerSpool);
     state.wireBasePrice += 0.05;
     return true;
   }
@@ -93,7 +94,7 @@ export class ProductionSystem extends GameSystem {
     const state = this.state;
     if (this.isProductionHalted()) return;
     if (!state.autoWire) return;
-    if (state.wire >= state.wirePerSpool / 2) return;
+    if (state.wire >= BigInt(Math.floor(state.wirePerSpool / 2))) return;
     this.purchaseWireSpool();
   }
 
@@ -105,10 +106,10 @@ export class ProductionSystem extends GameSystem {
     const state = this.state;
     if (state.phase1Complete) return false;
     const liquid = state.funds + state.investmentFunds;
-    if (state.wire >= 1 || state.unsold >= 1 || liquid >= state.wireCost) {
+    if (state.wire >= 1n || state.unsold >= 1n || liquid >= state.wireCost) {
       return false;
     }
-    state.wire += state.wirePerSpool;
+    state.wire += BigInt(state.wirePerSpool);
     return true;
   }
 
