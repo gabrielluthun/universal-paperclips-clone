@@ -213,6 +213,30 @@ describe("ProjectSystem", () => {
     expect(state.wireDronesUnlocked).toBe(true);
   });
 
+  it("phase 2 : Usines à trombones débloquées après drones récolteurs + fileurs", () => {
+    const state = GameState.createInitial();
+    state.phase = 2;
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.ops = 35_000;
+    state.markProjectCompleted("tothTubuleEnfolding");
+    state.markProjectCompleted("powerGrid");
+    state.markProjectCompleted("harvesterDrones");
+    const projects = new ProjectSystem(state);
+
+    // Manque encore wireDrones.
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "clipFactories",
+    );
+
+    state.markProjectCompleted("wireDrones");
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "clipFactories",
+    );
+    expect(projects.activateProject("clipFactories")).toBe(true);
+    expect(state.ops).toBe(0);
+    expect(state.clipFactoriesUnlocked).toBe(true);
+  });
+
   it("les projets phase 2 restent invisibles en phase 1", () => {
     const state = GameState.createInitial();
     state.clips = PROJECTS_UNLOCK_CLIPS;
