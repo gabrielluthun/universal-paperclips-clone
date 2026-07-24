@@ -64,5 +64,15 @@ export function createPhase2Projects(): Project[] {
         s.wireDronesUnlocked = true;
       },
     ),
+    new ConfigurableProject(
+      "clipFactories",
+      "Usines à trombones",
+      "Installations de production de trombones à grande échelle, elles-mêmes construites en trombones. Débloque leur achat.",
+      ProjectCost.of({ ops: 35_000 }),
+      (s) => done(s, "harvesterDrones") && done(s, "wireDrones"),
+      (s) => {
+        s.clipFactoriesUnlocked = true;
+      },
+    ),
   ];
 }
