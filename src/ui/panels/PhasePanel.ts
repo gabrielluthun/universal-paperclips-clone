@@ -4,12 +4,10 @@ import type { RenderModel } from "../RenderModel";
 
 /**
  * Écrans de transition de fin de phase. La phase 2 ne remplace pas
- * l'affichage phase 1 en bloc : chaque panneau devenu obsolète (Affaires,
- * Investissements) se masque individuellement via son propre état
- * (`state.phase`), les autres (Manufacturing, Compute, Quantique,
- * Stratégique) restent actifs, conformément au jeu original. La fin de
- * phase 2 (Exploration spatiale) affiche un second overlay en teaser de la
- * phase 3, non encore construite.
+ * l'affichage phase 1 en bloc : Affaires, Fabrication et le bouton Faire
+ * se masquent individuellement ; le fil réapparaît dans le panneau Drones.
+ * La fin de phase 2 (Exploration spatiale) affiche un second overlay en
+ * teaser de la phase 3, non encore construite.
  */
 export class PhasePanel {
   private readonly overlay = requireElement<HTMLElement>("phase1-end-overlay");

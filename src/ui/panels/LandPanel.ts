@@ -31,6 +31,7 @@ export class LandPanel {
     requireElement<HTMLSpanElement>("available-matter");
   private readonly acquiredMatter =
     requireElement<HTMLSpanElement>("acquired-matter");
+  private readonly landWire = requireElement<HTMLSpanElement>("land-wire");
   private readonly harvesterDrones =
     requireElement<HTMLSpanElement>("harvester-drones");
   private readonly harvesterDroneCost = requireElement<HTMLSpanElement>(
@@ -123,6 +124,7 @@ export class LandPanel {
     )}\u00A0%`;
     this.availableMatter.textContent = `${NumberFormatter.formatCompact(state.availableMatter)}\u00A0g`;
     this.acquiredMatter.textContent = `${NumberFormatter.formatCompact(state.acquiredMatter)}\u00A0g`;
+    this.landWire.textContent = `${NumberFormatter.formatInteger(state.wire)}\u00A0cm`;
 
     this.harvesterDrones.textContent = NumberFormatter.formatInteger(
       state.harvesterDrones,

@@ -5,6 +5,9 @@ import type { RenderModel } from "../RenderModel";
 
 export class BusinessPanel {
   private readonly panel = requireElement<HTMLElement>("panel-business");
+  private readonly manufacturingPanel = requireElement<HTMLElement>(
+    "panel-manufacturing",
+  );
   private readonly clips = requireElement<HTMLSpanElement>("clips");
   private readonly funds = requireElement<HTMLSpanElement>("funds");
   private readonly avgRev = requireElement<HTMLSpanElement>("avg-rev");
@@ -45,8 +48,10 @@ export class BusinessPanel {
   render(model: RenderModel): void {
     const { state, production, market } = model;
 
-    // Affaires (fonds, prix, marketing) : propre à la phase 1.
+    // Affaires + fabrication manuelle : propres à la phase 1.
     this.panel.hidden = state.phase !== 1;
+    this.manufacturingPanel.hidden = state.phase !== 1;
+    this.btnMake.hidden = state.phase !== 1;
 
     this.clips.textContent = NumberFormatter.formatInteger(state.clips);
     this.funds.textContent = NumberFormatter.formatMoney(state.funds);
@@ -76,8 +81,11 @@ export class BusinessPanel {
       production.getNextMegaClipperCost(),
     );
 
-    this.autoClipperBlock.hidden = !state.autoClippersUnlocked;
-    this.megaClipperBlock.hidden = !state.megaClippersUnlocked;
+    // Auto / Méga : fabrication phase 1 uniquement (obsolètes dès la Terre).
+    this.autoClipperBlock.hidden =
+      state.phase !== 1 || !state.autoClippersUnlocked;
+    this.megaClipperBlock.hidden =
+      state.phase !== 1 || !state.megaClippersUnlocked;
 
     this.btnMake.disabled =
       state.wire < 1n || model.production.isProductionHalted();
