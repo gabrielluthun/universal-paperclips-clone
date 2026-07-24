@@ -45,4 +45,27 @@ describe("NumberFormatter", () => {
     NumberFormatter.beginFrame(100);
     expect(NumberFormatter.formatIntegerExact(999)).toBe("999");
   });
+
+  it("formatCompact reste en chiffres complets sous le milliard", () => {
+    expect(NumberFormatter.formatCompact(1)).toBe("1");
+    expect(NumberFormatter.formatCompact(999_999_999)).toBe("999\u202f999\u202f999");
+  });
+
+  it("formatCompact abrège en échelle longue française à partir du milliard", () => {
+    expect(NumberFormatter.formatCompact(1_500_000_000)).toBe(
+      "1,50\u00A0milliard",
+    );
+    expect(NumberFormatter.formatCompact(2_500_000_000)).toBe(
+      "2,50\u00A0milliards",
+    );
+    expect(NumberFormatter.formatCompact(1_000_000_000_000)).toBe(
+      "1,00\u00A0billion",
+    );
+  });
+
+  it("formatCompact reconnaît les quatrilliards (matière disponible de phase 2)", () => {
+    expect(NumberFormatter.formatCompact(6 * Math.pow(10, 27))).toBe(
+      "6,00\u00A0quatrilliards",
+    );
+  });
 });

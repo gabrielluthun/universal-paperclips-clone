@@ -1,102 +1,65 @@
+import type { CoreFields } from "./fields/coreFields";
+import { createCoreFields } from "./fields/coreFields";
+import type { ComputeFields } from "./fields/computeFields";
+import { createComputeFields } from "./fields/computeFields";
+import type { InvestmentFields } from "./fields/investmentFields";
+import { createInvestmentFields } from "./fields/investmentFields";
+import type { LandFields } from "./fields/landFields";
+import { createLandFields } from "./fields/landFields";
+import type { MarketFields } from "./fields/marketFields";
+import { createMarketFields } from "./fields/marketFields";
+import type { ProductionFields } from "./fields/productionFields";
+import { createProductionFields } from "./fields/productionFields";
+import type { QuantumFields } from "./fields/quantumFields";
+import { createQuantumFields } from "./fields/quantumFields";
+import type { StrategicFields } from "./fields/strategicFields";
+import { createStrategicFields } from "./fields/strategicFields";
 import { applyMigrations, SAVE_MIGRATIONS } from "./saveMigrations";
 
 /**
+ * 
  * Version de la sauvegarde. S'incrémente lorsque des modifications sont
  * apportées à la structure de l'état. Chaque bump DOIT être accompagné d'une
  * entrée dans `SAVE_MIGRATIONS` (voir `saveMigrations.ts`) pour que les
  * sauvegardes existantes conservent leur progression au lieu d'être perdues.
  */
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 12;
+
+/**
+ * Fusion de déclarations : les champs de chaque domaine (`src/state/fields/`)
+ * sont ajoutés au type `GameState` ici, sans dupliquer leur déclaration dans
+ * la classe ci-dessous. Le runtime reste un objet plat classique — seule la
+ * déclaration des champs est répartie par fichier.
+ */
+export interface GameState
+  extends CoreFields,
+    ProductionFields,
+    MarketFields,
+    ComputeFields,
+    StrategicFields,
+    InvestmentFields,
+    QuantumFields,
+    LandFields {}
 
 /** État mutable de la partie — source de vérité pour tous les systèmes. */
 export class GameState {
   version = SAVE_VERSION;
-  /** Phase du jeu (1 : business, 2 : Terre, 3 : espace). */
-  phase = 1;
-  /** Phase 1 close via HypnoDrones. */
-  phase1Complete = false;
-  /** L'écran de transition de fin de phase 1 a été fermé. */
-  phase1EndAcknowledged = false;
-
-  clips = 0;
-  unsold = 0;
-  funds = 0;
-  price = 0.25;
-
-  wire = 1000;
-  wirePerSpool = 1000;
-  wireCost = 20;
-  wireBasePrice = 20;
-  wirePriceCounter = 0;
-
-  marketingLvl = 1;
-  marketingEffectiveness = 1;
-
-  autoClippers = 0;
-  autoClippersUnlocked = false;
-  clipperBonus = 1;
-  autoClipFraction = 0;
-
-  megaClippers = 0;
-  megaClippersUnlocked = false;
-  megaClipperBonus = 1;
-  autoWire = false;
-
-  /**
-   * Coût du prochain « Autre jeton de goodwill » ($).
-   * Double à chaque achat, plafonné à 512 M$.
-   */
-  goodwillTokenCost = 1_000_000;
-
-  trust = 2;
-  nextTrust = 3000;
-  trustFibA = 2;
-  trustFibB = 3;
-  processors = 1;
-  memory = 1;
-  ops = 0;
-  creativity = 0;
-  creativityUnlocked = false;
-
-  // --- Modélisation stratégique / Yomi ---
-  strategicModelingUnlocked = false;
-  /** Stratégies débloquées (RANDOM au départ du projet). */
-  unlockedStrategyIds: string[] = ["RANDOM"];
-  selectedStrategyId = "RANDOM";
-  /** Coût ops d'un tournoi (1000 × nombre de stratégies). */
-  tourneyCost = 1000;
-  /** Multiplicateur de Yomi (×2 après Théorie de l'esprit, plus tard). */
-  yomiBoost = 1;
-  tourneyPayoff: { aa: number; ab: number; ba: number; bb: number } | null =
-    null;
-  tourneyChoiceA = "";
-  tourneyChoiceB = "";
-  tourneyResults: { id: string; name: string; score: number }[] = [];
-  lastTourneyYomiGained = 0;
-
-  // --- Investissements ---
-  investmentsUnlocked = false;
-  /** Fonds placés sur les marchés. */
-  investmentFunds = 0;
-  /** Niveau du moteur de trading (1+). */
-  investEngineLevel = 1;
-  /** Risque : 1 = faible, 2 = moyen, 3 = élevé. */
-  investRisk = 1;
-  /** Yomi (gagné aux tournois, dépensé pour le moteur). */
-  yomi = 0;
-  /** Dernière variation boursière affichée ($). */
-  lastStockDelta = 0;
-
-  // --- Quantique ---
-  quantumUnlocked = false;
-  /** Puces photoniques. */
-  qChips = 0;
-  /** Calcul quantique en cours (ops oscillantes). */
-  qComputeActive = false;
-  /** Phase de l'oscillation quantique. */
-  qPhase = 0;
 
   private completedProjectIds: string[] = [];
+
+  constructor() {
+    Object.assign(
+      this,
+      createCoreFields(),
+      createProductionFields(),
+      createMarketFields(),
+      createComputeFields(),
+      createStrategicFields(),
+      createInvestmentFields(),
+      createQuantumFields(),
+      createLandFields(),
+    );
+  }
 
   static createInitial(): GameState {
     return new GameState();

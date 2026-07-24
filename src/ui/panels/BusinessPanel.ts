@@ -4,6 +4,7 @@ import { requireElement } from "../dom";
 import type { RenderModel } from "../RenderModel";
 
 export class BusinessPanel {
+  private readonly panel = requireElement<HTMLElement>("panel-business");
   private readonly clips = requireElement<HTMLSpanElement>("clips");
   private readonly funds = requireElement<HTMLSpanElement>("funds");
   private readonly avgRev = requireElement<HTMLSpanElement>("avg-rev");
@@ -43,6 +44,9 @@ export class BusinessPanel {
 
   render(model: RenderModel): void {
     const { state, production, market } = model;
+
+    // Affaires (fonds, prix, marketing) : propre à la phase 1.
+    this.panel.hidden = state.phase !== 1;
 
     this.clips.textContent = NumberFormatter.formatInteger(state.clips);
     this.funds.textContent = NumberFormatter.formatMoney(state.funds);

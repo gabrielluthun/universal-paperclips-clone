@@ -129,6 +129,267 @@ describe("ProjectSystem", () => {
     expect(state.goodwillTokenCost).toBe(4_000_000);
   });
 
+  it("phase 2 : Tóth Tubule Enfolding puis Réseau électrique", () => {
+    const state = GameState.createInitial();
+    state.phase = 2;
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.ops = 100_000;
+    const projects = new ProjectSystem(state);
+
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "tothTubuleEnfolding",
+    );
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "powerGrid",
+    );
+
+    expect(projects.activateProject("tothTubuleEnfolding")).toBe(true);
+    expect(state.ops).toBe(55_000);
+    expect(state.landFoundationUnlocked).toBe(true);
+
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "powerGrid",
+    );
+    expect(projects.activateProject("powerGrid")).toBe(true);
+    expect(state.ops).toBe(15_000);
+    expect(state.powerGridUnlocked).toBe(true);
+  });
+
+  it("phase 2 : Production de fil nanométrique après le Réseau électrique", () => {
+    const state = GameState.createInitial();
+    state.phase = 2;
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.ops = 35_000;
+    state.markProjectCompleted("tothTubuleEnfolding");
+    state.markProjectCompleted("powerGrid");
+    const projects = new ProjectSystem(state);
+
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "nanoscaleWireProduction",
+    );
+    expect(projects.activateProject("nanoscaleWireProduction")).toBe(true);
+    expect(state.ops).toBe(0);
+    expect(state.nanoscaleWireUnlocked).toBe(true);
+  });
+
+  it("phase 2 : Drones récolteurs débloqués après le Réseau électrique", () => {
+    const state = GameState.createInitial();
+    state.phase = 2;
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.ops = 25_000;
+    state.markProjectCompleted("tothTubuleEnfolding");
+    state.markProjectCompleted("powerGrid");
+    const projects = new ProjectSystem(state);
+
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "harvesterDrones",
+    );
+    expect(projects.activateProject("harvesterDrones")).toBe(true);
+    expect(state.ops).toBe(0);
+    expect(state.harvesterDronesUnlocked).toBe(true);
+  });
+
+  it("phase 2 : Drones fileurs débloqués après fil nanométrique + drones récolteurs", () => {
+    const state = GameState.createInitial();
+    state.phase = 2;
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.ops = 25_000;
+    state.markProjectCompleted("tothTubuleEnfolding");
+    state.markProjectCompleted("powerGrid");
+    state.markProjectCompleted("harvesterDrones");
+    const projects = new ProjectSystem(state);
+
+    // Manque encore nanoscaleWireProduction.
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "wireDrones",
+    );
+
+    state.markProjectCompleted("nanoscaleWireProduction");
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "wireDrones",
+    );
+    expect(projects.activateProject("wireDrones")).toBe(true);
+    expect(state.ops).toBe(0);
+    expect(state.wireDronesUnlocked).toBe(true);
+  });
+
+  it("phase 2 : Usines à trombones débloquées après drones récolteurs + fileurs", () => {
+    const state = GameState.createInitial();
+    state.phase = 2;
+    state.clips = 100_000_000 + PROJECTS_UNLOCK_CLIPS;
+    state.ops = 35_000;
+    state.markProjectCompleted("tothTubuleEnfolding");
+    state.markProjectCompleted("powerGrid");
+    state.markProjectCompleted("harvesterDrones");
+    const projects = new ProjectSystem(state);
+
+    // Manque encore wireDrones.
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "clipFactories",
+    );
+
+    state.markProjectCompleted("wireDrones");
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "clipFactories",
+    );
+    expect(projects.activateProject("clipFactories")).toBe(true);
+    expect(state.ops).toBe(0);
+    expect(state.clips).toBe(PROJECTS_UNLOCK_CLIPS);
+    expect(state.clipFactoriesUnlocked).toBe(true);
+  });
+
+  it("phase 2 : Informatique en essaim débloquée à partir de 200 drones", () => {
+    const state = GameState.createInitial();
+    state.phase = 2;
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.yomi = 36_000;
+    state.harvesterDrones = 100;
+    state.wireDrones = 99;
+    const projects = new ProjectSystem(state);
+
+    // 199 drones : pas encore assez.
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "swarmComputing",
+    );
+
+    state.wireDrones = 100;
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "swarmComputing",
+    );
+    expect(projects.activateProject("swarmComputing")).toBe(true);
+    expect(state.yomi).toBe(0);
+    expect(state.swarmComputingUnlocked).toBe(true);
+  });
+
+  it("phase 2 : Vol en essaim anti-collision/alignement/cohésion adverse débloqués par seuil de drones", () => {
+    const state = GameState.createInitial();
+    state.phase = 2;
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.ops = 100_000;
+    state.yomi = 50_000;
+    state.harvesterDrones = 250;
+    state.wireDrones = 249; // 499 : pas encore assez pour anti-collision
+    const projects = new ProjectSystem(state);
+
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "droneFlockingCollisionAvoidance",
+    );
+
+    state.wireDrones = 250; // 500
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "droneFlockingCollisionAvoidance",
+    );
+    expect(projects.activateProject("droneFlockingCollisionAvoidance")).toBe(
+      true,
+    );
+    expect(state.droneEfficiencyBonus).toBe(100);
+
+    // Alignement nécessite 5 000 drones.
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "droneFlockingAlignment",
+    );
+    state.harvesterDrones = 2_500;
+    state.wireDrones = 2_500;
+    state.ops = 100_000;
+    expect(projects.activateProject("droneFlockingAlignment")).toBe(true);
+    expect(state.droneEfficiencyBonus).toBe(100_000); // cumulatif ×100 puis ×1000
+
+    // Cohésion adverse nécessite 50 000 drones.
+    state.harvesterDrones = 25_000;
+    state.wireDrones = 25_000;
+    expect(projects.activateProject("droneFlockingAdversarialCohesion")).toBe(
+      true,
+    );
+    expect(state.droneBoost).toBe(10);
+  });
+
+  it("phase 2 : Usines améliorées/hypervéloces/auto-correctrice débloquées par seuil d'usines", () => {
+    const state = GameState.createInitial();
+    state.phase = 2;
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.ops = 100_000;
+    state.unsold = 1_000_000_000_000_000_000_000;
+    state.clipFactories = 9;
+    const projects = new ProjectSystem(state);
+
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "upgradedFactories",
+    );
+    state.clipFactories = 10;
+    expect(projects.activateProject("upgradedFactories")).toBe(true);
+    expect(state.factoryEfficiencyBonus).toBe(100);
+
+    state.clipFactories = 20;
+    state.ops = 100_000;
+    expect(projects.activateProject("hyperspeedFactories")).toBe(true);
+    expect(state.factoryEfficiencyBonus).toBe(100_000);
+
+    state.clipFactories = 50;
+    expect(projects.activateProject("selfCorrectingSupplyChain")).toBe(true);
+    expect(state.factoryBoost).toBe(1_000);
+    expect(state.unsold).toBe(0);
+  });
+
+  it("phase 2 : Élan débloqué à partir de 50 Fermes solaires", () => {
+    const state = GameState.createInitial();
+    state.phase = 2;
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.creativity = 20_000;
+    state.solarFarms = 49;
+    const projects = new ProjectSystem(state);
+
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "momentum",
+    );
+
+    state.solarFarms = 50;
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "momentum",
+    );
+    expect(projects.activateProject("momentum")).toBe(true);
+    expect(state.creativity).toBe(0);
+    expect(state.momentumUnlocked).toBe(true);
+  });
+
+  it("phase 2 : Exploration spatiale débloquée une fois la matière épuisée, termine la phase 2", () => {
+    const state = GameState.createInitial();
+    state.phase = 2;
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.ops = 120_000;
+    state.storedPower = 10_000_000;
+    state.unsold = Math.pow(10, 27) * 5;
+    state.availableMatter = 1; // pas encore épuisée
+    const projects = new ProjectSystem(state);
+
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "spaceExploration",
+    );
+
+    state.availableMatter = 0;
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "spaceExploration",
+    );
+    expect(projects.activateProject("spaceExploration")).toBe(true);
+    expect(state.ops).toBe(0);
+    expect(state.storedPower).toBe(0);
+    expect(state.unsold).toBe(0);
+    expect(state.phase).toBe(3);
+    expect(state.phase2Complete).toBe(true);
+    expect(state.phase2EndAcknowledged).toBe(false);
+  });
+
+  it("les projets phase 2 restent invisibles en phase 1", () => {
+    const state = GameState.createInitial();
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.ops = 100_000;
+    const projects = new ProjectSystem(state);
+
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "tothTubuleEnfolding",
+    );
+    expect(projects.activateProject("tothTubuleEnfolding")).toBe(false);
+  });
+
   it("projets CEV : gros gains de confiance hors Fibonacci", () => {
     const state = GameState.createInitial();
     state.clips = PROJECTS_UNLOCK_CLIPS;

@@ -3,6 +3,7 @@ import { SaveManager } from "../state/SaveManager";
 import { ComputeSystem } from "../systems/compute/ComputeSystem";
 import type { GameSystem } from "../systems/core/GameSystem";
 import { InvestmentSystem } from "../systems/invest/InvestmentSystem";
+import { LandSystem } from "../systems/land/LandSystem";
 import { MarketSystem } from "../systems/market/MarketSystem";
 import { ProductionSystem } from "../systems/production/ProductionSystem";
 import { ProjectSystem } from "../systems/projects/ProjectSystem";
@@ -12,6 +13,7 @@ import { Renderer } from "../ui/Renderer";
 import { TitleScreen } from "../ui/TitleScreen";
 import { ComputeController } from "./controllers/ComputeController";
 import { InvestmentsController } from "./controllers/InvestmentsController";
+import { LandController } from "./controllers/LandController";
 import { MarketController } from "./controllers/MarketController";
 import { PhaseController } from "./controllers/PhaseController";
 import { ProductionController } from "./controllers/ProductionController";
@@ -35,8 +37,14 @@ export class Game {
   readonly investments: InvestmentSystem;
   readonly strategic: StrategicModelingSystem;
   readonly quantum: QuantumSystem;
+  readonly land: LandSystem;
 
-  private readonly simulationSystems: GameSystem[];
+  /** Systèmes actifs quelle que soit la phase (production, compute, quantique). */
+  private readonly alwaysActiveSystems: GameSystem[];
+  /** Systèmes « Affaires » (marché, investissements) : phase 1 seulement. */
+  private readonly businessSystems: GameSystem[];
+  /** Systèmes de la phase 2 (Terre) et au-delà. */
+  private readonly landSystems: GameSystem[];
   private readonly saveManager = new SaveManager();
   private readonly renderer = new Renderer();
   private readonly titleScreen = new TitleScreen();
@@ -71,13 +79,10 @@ export class Game {
     this.investments = new InvestmentSystem(this.state);
     this.strategic = new StrategicModelingSystem(this.state);
     this.quantum = new QuantumSystem(this.state);
-    this.simulationSystems = [
-      this.production,
-      this.market,
-      this.compute,
-      this.investments,
-      this.quantum,
-    ];
+    this.land = new LandSystem(this.state);
+    this.alwaysActiveSystems = [this.production, this.compute, this.quantum];
+    this.businessSystems = [this.market, this.investments];
+    this.landSystems = [this.land];
 
     this.lifecycle = new GameLifecycle(this.state, this.saveManager, AUTOSAVE_MS);
     this.loop = new GameLoop(
@@ -106,6 +111,10 @@ export class Game {
     this.state.phase1EndAcknowledged = true;
   }
 
+  acknowledgePhase2End(): void {
+    this.state.phase2EndAcknowledged = true;
+  }
+
   /** Démarre tick, autosave et rendu après l’écran titre. */
   private beginGameLoop(): void {
     if (this.gameLoopStarted) return;
@@ -114,8 +123,19 @@ export class Game {
     this.loop.start();
   }
 
+  /**
+   * Systèmes de simulation actifs pour la phase courante : production, compute
+   * et quantique restent actifs partout ; marché/investissements sont propres
+   * à la phase 1, la Terre (drones, usines...) à la phase 2 et au-delà.
+   */
+  private get activeSystems(): GameSystem[] {
+    const phaseSpecific =
+      this.state.phase === 1 ? this.businessSystems : this.landSystems;
+    return [...this.alwaysActiveSystems, ...phaseSpecific];
+  }
+
   private updateSimulation(deltaMs: number): void {
-    for (const system of this.simulationSystems) {
+    for (const system of this.activeSystems) {
       system.update(deltaMs);
     }
 
@@ -138,7 +158,11 @@ export class Game {
     new InvestmentsController(this.investments).bind();
     new StrategicController(this.strategic).bind();
     new QuantumController(this.quantum).bind();
-    new PhaseController(() => this.acknowledgePhase1End()).bind();
+    new LandController(this.land).bind();
+    new PhaseController(
+      () => this.acknowledgePhase1End(),
+      () => this.acknowledgePhase2End(),
+    ).bind();
     this.lifecycle.bindResetButton();
   }
 }

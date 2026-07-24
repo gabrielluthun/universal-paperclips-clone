@@ -1,0 +1,391 @@
+import type { GameState } from "../../state/GameState";
+import { GameSystem } from "../core/GameSystem";
+
+/**
+ * Constantes phase 2 issues du vrai `globals.js` d'Universal Paperclips
+ * (valeurs initiales des variables globales, distinctes de `main.js` qui ne
+ * contient que les fonctions) : coûts, taux de production et puissance.
+ */
+/** Coût de la première ferme (farmLevel = 0). */
+const INITIAL_SOLAR_FARM_COST = 10_000_000;
+/** Exposant et facteur de la formule UP : (n+1)^2.78 × 1e8 pour n ≥ 1. */
+const SOLAR_FARM_COST_EXPONENT = 2.78;
+const SOLAR_FARM_COST_FACTOR = 100_000_000;
+/** Puissance générée par ferme solaire (MW) — farmRate = 50 dans UP. */
+const POWER_PER_SOLAR_FARM = 50;
+/** Consommation électrique par drone (MW), qu'il soit récolteur ou fileur. */
+const POWER_PER_DRONE = 1;
+/** Consommation électrique par Usine (MW) — factoryPowerRate = 200 dans UP. */
+const POWER_PER_FACTORY = 200;
+/** Matière récoltée par Drone récolteur à pleine puissance (g/s) — harvesterRate. */
+const MATTER_PER_HARVESTER_DRONE = 26_180_337;
+/** Fil produit par Drone fileur à pleine puissance (pouces/s) — wireDroneRate. */
+const WIRE_PER_WIRE_DRONE = 16_180_339;
+/**
+ * Coût des drones (récolteurs et fileurs, même formule dans UP) :
+ * 1M, 4.76M, 11.84M… = 1_000_000 × n^2.25, n = nombre de drones après achat.
+ */
+const DRONE_COST_BASE = 1_000_000;
+const DRONE_COST_EXPONENT = 2.25;
+/** Capacité de stockage par Batterie (MW·s) — batterySize = 10000 dans UP. */
+const BATTERY_CAPACITY_PER_UNIT = 10_000;
+/** Coût de la première Batterie. */
+const INITIAL_BATTERY_COST = 1_000_000;
+/** Formule UP du coût des Batteries suivantes : (n+1)^2.54 × 1e7. */
+const BATTERY_COST_EXPONENT = 2.54;
+const BATTERY_COST_FACTOR = 10_000_000;
+/** Trombones produits par Usine à pleine puissance (clips/s) — factoryRate. */
+const CLIPS_PER_FACTORY = 1_000_000_000;
+/** Seuil d'accumulation (giftBits) avant l'octroi d'un cadeau de calcul — giftPeriod. */
+const GIFT_PERIOD = 125_000;
+/** Seuil d'ennui (boredomLevel) qui bloque les cadeaux tant que non résolu. */
+const BOREDOM_THRESHOLD = 30_000;
+/** Seuil de désorganisation (disorgCounter) qui bloque les cadeaux tant que non résolu. */
+const DISORG_THRESHOLD = 100;
+/** Coût (en Yomi) de « Synchroniser le swarm », fixe dans UP (synchCost). */
+const SYNCH_SWARM_COST = 5_000;
+/** Incrément du coût de « Distraire le swarm » à chaque usage (créativité). */
+const ENTERTAIN_SWARM_COST_INCREMENT = 10_000;
+/**
+ * Gain de performance par seconde tant que l'alimentation est à 100 % et
+ * qu'Élan est acquis (momentum dans UP, +0,0001 par tick de 10 ms → +0,01/s).
+ * Non plafonné : powMod peut dépasser 1 indéfiniment.
+ */
+const MOMENTUM_GAIN_PER_SECOND = 0.01;
+
+/**
+ * Multiplicateur appliqué au coût de l'Usine à chaque achat (fcmod dans UP).
+ * Contrairement aux fermes/drones/batteries, ce n'est pas une fonction pure
+ * du nombre d'usines : c'est un facteur *multiplicatif* appliqué au coût
+ * courant, d'où la nécessité de persister `clipFactoryCost` dans l'état.
+ */
+function getFactoryCostMultiplier(newLevel: number): number {
+  if (newLevel > 0 && newLevel < 8) return 11 - newLevel;
+  if (newLevel < 13) return 2;
+  if (newLevel < 20) return 1.5;
+  if (newLevel < 39) return 1.25;
+  if (newLevel < 79) return 1.15;
+  return 1.1;
+}
+
+/**
+ * Système de simulation de la phase 2 (Terre) : grid électrique, drones,
+ * usines à trombones, informatique en essaim. Rempli incrémentalement au
+ * fil des étapes du plan phase 2.
+ */
+export class LandSystem extends GameSystem {
+  constructor(state: GameState) {
+    super(state);
+  }
+
+  /**
+   * Coût (en trombones) de la prochaine Ferme solaire.
+   * Formule UP : 10M à 0 ferme, puis Math.pow(solarFarms+1, 2.78)*1e8.
+   */
+  getNextSolarFarmCost(): number {
+    const owned = this.state.solarFarms;
+    if (owned === 0) return INITIAL_SOLAR_FARM_COST;
+    return Math.pow(owned + 1, SOLAR_FARM_COST_EXPONENT) * SOLAR_FARM_COST_FACTOR;
+  }
+
+  purchaseSolarFarm(): boolean {
+    const s = this.state;
+    if (!s.powerGridUnlocked) return false;
+    const cost = this.getNextSolarFarmCost();
+    if (s.clips < cost) return false;
+    s.clips -= cost;
+    s.solarFarms += 1;
+    return true;
+  }
+
+  /** Coût (en trombones) de la prochaine Batterie. Formule UP : (n+1)^2.54 × 1e7. */
+  getNextBatteryCost(): number {
+    const owned = this.state.batteries;
+    if (owned === 0) return INITIAL_BATTERY_COST;
+    return Math.pow(owned + 1, BATTERY_COST_EXPONENT) * BATTERY_COST_FACTOR;
+  }
+
+  purchaseBattery(): boolean {
+    const s = this.state;
+    if (!s.powerGridUnlocked) return false;
+    const cost = this.getNextBatteryCost();
+    if (s.clips < cost) return false;
+    s.clips -= cost;
+    s.batteries += 1;
+    return true;
+  }
+
+  /** Capacité totale de stockage des batteries (MW·s). */
+  getBatteryCapacity(): number {
+    return this.state.batteries * BATTERY_CAPACITY_PER_UNIT;
+  }
+
+  /** Coût (en trombones) du prochain Drone récolteur. */
+  getNextHarvesterDroneCost(): number {
+    return Math.round(
+      Math.pow(this.state.harvesterDrones + 1, DRONE_COST_EXPONENT) * DRONE_COST_BASE,
+    );
+  }
+
+  purchaseHarvesterDrone(): boolean {
+    const s = this.state;
+    if (!s.harvesterDronesUnlocked) return false;
+    const cost = this.getNextHarvesterDroneCost();
+    if (s.clips < cost) return false;
+    s.clips -= cost;
+    s.harvesterDrones += 1;
+    return true;
+  }
+
+  /** Coût (en trombones) du prochain Drone fileur. */
+  getNextWireDroneCost(): number {
+    return Math.round(
+      Math.pow(this.state.wireDrones + 1, DRONE_COST_EXPONENT) * DRONE_COST_BASE,
+    );
+  }
+
+  purchaseWireDrone(): boolean {
+    const s = this.state;
+    if (!s.wireDronesUnlocked) return false;
+    const cost = this.getNextWireDroneCost();
+    if (s.clips < cost) return false;
+    s.clips -= cost;
+    s.wireDrones += 1;
+    return true;
+  }
+
+  /** Coût (en trombones) de la prochaine Usine (valeur persistée, formule UP non fermée). */
+  getNextClipFactoryCost(): number {
+    return this.state.clipFactoryCost;
+  }
+
+  purchaseClipFactory(): boolean {
+    const s = this.state;
+    if (!s.clipFactoriesUnlocked) return false;
+    const cost = s.clipFactoryCost;
+    if (s.clips < cost) return false;
+    s.clips -= cost;
+    s.clipFactories += 1;
+    s.clipFactoryCost *= getFactoryCostMultiplier(s.clipFactories);
+    return true;
+  }
+
+  /** Taille de l'essaim (nombre total de drones), base de la génération de cadeaux. */
+  getSwarmSize(): number {
+    return Math.floor(this.state.harvesterDrones + this.state.wireDrones);
+  }
+
+  /** Positionne le curseur Travail (0) ⟷ Réflexion (100), révélé par Informatique en essaim. */
+  setSliderPos(value: number): void {
+    if (!this.state.swarmComputingUnlocked) return;
+    this.state.sliderPos = Math.min(100, Math.max(0, Math.round(value)));
+  }
+
+  /** Coût (en Yomi) de « Synchroniser le swarm » (résout la désorganisation). */
+  getSynchSwarmCost(): number {
+    return SYNCH_SWARM_COST;
+  }
+
+  synchronizeSwarm(): boolean {
+    const s = this.state;
+    if (!s.swarmComputingUnlocked) return false;
+    if (s.yomi < SYNCH_SWARM_COST) return false;
+    s.yomi -= SYNCH_SWARM_COST;
+    s.disorgActive = false;
+    s.disorgCounter = 0;
+    return true;
+  }
+
+  /** Coût (en créativité) de « Distraire le swarm » (résout l'ennui), augmente à chaque usage. */
+  getEntertainSwarmCost(): number {
+    return this.state.entertainSwarmCost;
+  }
+
+  entertainSwarm(): boolean {
+    const s = this.state;
+    if (!s.swarmComputingUnlocked) return false;
+    if (s.creativity < s.entertainSwarmCost) return false;
+    s.creativity -= s.entertainSwarmCost;
+    s.entertainSwarmCost += ENTERTAIN_SWARM_COST_INCREMENT;
+    s.boredomActive = false;
+    s.boredomLevel = 0;
+    return true;
+  }
+
+  /**
+   * Mécanique du swarm (fidèle à UP, converti en taux continus par seconde
+   * depuis les incréments par tick de 10 ms de l'original) : ennui,
+   * désorganisation, et génération de cadeaux de calcul.
+   */
+  private updateSwarm(dt: number): void {
+    const s = this.state;
+    const d = this.getSwarmSize();
+
+    if (s.availableMatter <= 0 && d >= 1) {
+      s.boredomLevel = Math.min(BOREDOM_THRESHOLD, s.boredomLevel + 100 * dt);
+    } else if (s.boredomLevel > 0) {
+      s.boredomLevel = Math.max(0, s.boredomLevel - 100 * dt);
+    }
+    if (s.boredomLevel >= BOREDOM_THRESHOLD) {
+      s.boredomActive = true;
+    }
+
+    const droneRatio =
+      Math.max(s.harvesterDrones + 1, s.wireDrones + 1) /
+      Math.min(s.harvesterDrones + 1, s.wireDrones + 1);
+    if (droneRatio > 1.5) {
+      s.disorgCounter += Math.min(droneRatio / 100, 1) * dt;
+    } else if (s.disorgCounter > 1) {
+      s.disorgCounter = Math.max(0, s.disorgCounter - 1 * dt);
+    }
+    if (s.disorgCounter >= DISORG_THRESHOLD) {
+      s.disorgActive = true;
+    }
+
+    // Pas de cadeau tant que le swarm est ennuyé, désorganisé, à l'arrêt
+    // (panne de courant) ou trop petit (statuts UP « Lonely »/« NO RESPONSE »).
+    if (s.boredomActive || s.disorgActive || s.powMod <= 0 || d < 2) return;
+
+    const giftRate = Math.log(d) * s.sliderPos; // giftBits par seconde
+    s.giftBits += giftRate * dt;
+
+    while (s.giftBits >= GIFT_PERIOD) {
+      const gift = Math.max(1, Math.round(Math.log10(d) * (s.sliderPos / 100)));
+      s.swarmGifts += gift;
+      s.giftBits -= GIFT_PERIOD;
+    }
+  }
+
+  /** Puissance électrique instantanée générée par les Fermes solaires (MW). */
+  getPowerOutput(): number {
+    return this.state.solarFarms * POWER_PER_SOLAR_FARM;
+  }
+
+  /** Puissance requise pour faire tourner tous les drones et usines à pleine capacité (MW). */
+  getPowerDemand(): number {
+    const s = this.state;
+    return (
+      (s.harvesterDrones + s.wireDrones) * POWER_PER_DRONE +
+      s.clipFactories * POWER_PER_FACTORY
+    );
+  }
+
+  /**
+   * Ratio de performance instantané pour l'affichage (0 à 1), sans effet de
+   * bord : approxime `s.powMod` en supposant que la batterie peut couvrir
+   * intégralement un déficit tant qu'elle n'est pas vide. Le calcul exact,
+   * qui dépend du temps écoulé, se fait dans {@link update}.
+   */
+  getPowerRatio(): number {
+    const supply = this.getPowerOutput();
+    const demand = this.getPowerDemand();
+    if (demand <= 0) return 1;
+    if (supply >= demand) return 1;
+    const deficit = demand - supply;
+    const coveredByBattery = Math.min(deficit, this.state.storedPower);
+    return Math.min(1, (supply + coveredByBattery) / demand);
+  }
+
+  /**
+   * Facteur Travail/Réflexion appliqué à la récolte et au filage (formule
+   * UP : (200-sliderPos)/100). sliderPos reste à 0 (donc facteur ×2) tant
+   * que l'Informatique en essaim n'est pas débloquée.
+   */
+  private getWorkFactor(): number {
+    return (200 - this.state.sliderPos) / 100;
+  }
+
+  /**
+   * Multiplicateur « boost » (dbsth/dbstw/fbst dans UP) : reste à 1 tant que
+   * Cohésion adverse / Chaîne auto-correctrice ne sont pas acquises. Une
+   * fois actif, la production devient quadratique en nombre d'unités
+   * (chaque unité ajoutée multiplie la production de toutes les autres).
+   */
+  private getBoostMultiplier(boost: number, count: number): number {
+    return boost > 1 ? boost * count : 1;
+  }
+
+  override update(deltaMs: number): void {
+    const s = this.state;
+    if (!s.powerGridUnlocked) return;
+
+    const dt = deltaMs / 1000;
+    const supply = this.getPowerOutput();
+    const demand = this.getPowerDemand();
+    s.power = supply;
+
+    // Batterie tampon fidèle à UP : un déficit ponctuel est d'abord comblé
+    // par l'énergie stockée ; la performance (powMod) ne chute que si la
+    // batterie est elle aussi épuisée.
+    if (supply >= demand) {
+      const surplusEnergy = (supply - demand) * dt;
+      const capacity = this.getBatteryCapacity();
+      s.storedPower = Math.min(capacity, s.storedPower + surplusEnergy);
+      if (s.powMod < 1) s.powMod = 1;
+      if (s.momentumUnlocked) s.powMod += MOMENTUM_GAIN_PER_SECOND * dt;
+    } else if (demand > 0) {
+      const deficitEnergy = (demand - supply) * dt;
+      const drawnFromBattery = Math.min(deficitEnergy, s.storedPower);
+      s.storedPower -= drawnFromBattery;
+      const unmetEnergy = deficitEnergy - drawnFromBattery;
+      if (unmetEnergy > 0) {
+        s.powMod = Math.max(0, 1 - unmetEnergy / (demand * dt));
+      } else {
+        s.powMod = 1;
+        if (s.momentumUnlocked) s.powMod += MOMENTUM_GAIN_PER_SECOND * dt;
+      }
+    } else {
+      s.powMod = 1;
+    }
+
+    const workFactor = this.getWorkFactor();
+
+    if (s.harvesterDronesUnlocked) {
+      const harvestRate =
+        s.harvesterDrones *
+        this.getBoostMultiplier(s.droneBoost, s.harvesterDrones) *
+        MATTER_PER_HARVESTER_DRONE *
+        s.droneEfficiencyBonus *
+        s.powMod *
+        workFactor;
+      const harvested = Math.min(harvestRate * dt, s.availableMatter);
+      s.availableMatter -= harvested;
+      s.acquiredMatter += harvested;
+    }
+
+    if (s.wireDronesUnlocked) {
+      // Hypothèse (non documentée telle quelle par le wiki) : 1 g de matière
+      // acquise produit 1 pouce de fil, la matière acquise est donc bien la
+      // ressource limitante de cette conversion.
+      const wireRate =
+        s.wireDrones *
+        this.getBoostMultiplier(s.droneBoost, s.wireDrones) *
+        WIRE_PER_WIRE_DRONE *
+        s.droneEfficiencyBonus *
+        s.powMod *
+        workFactor;
+      const converted = Math.min(wireRate * dt, s.acquiredMatter);
+      s.acquiredMatter -= converted;
+      s.wire += converted;
+    }
+
+    if (s.clipFactoriesUnlocked) {
+      // Contrairement aux drones, la formule UP n'applique pas le facteur
+      // Travail/Réflexion (sliderPos) à la production des usines.
+      const factoryOutputRate =
+        s.clipFactories *
+        this.getBoostMultiplier(s.factoryBoost, s.clipFactories) *
+        CLIPS_PER_FACTORY *
+        s.factoryEfficiencyBonus *
+        s.powMod;
+      const produced = Math.min(factoryOutputRate * dt, s.wire);
+      s.wire -= produced;
+      s.clips += produced;
+      s.unsold += produced;
+    }
+
+    if (s.swarmComputingUnlocked) {
+      this.updateSwarm(dt);
+    }
+  }
+}

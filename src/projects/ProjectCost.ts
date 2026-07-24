@@ -9,6 +9,12 @@ export class ProjectCost {
     readonly yomi?: number,
     /** Si false, la confiance est un prérequis affiché mais n'est pas débitée. */
     readonly spendTrust: boolean = true,
+    /** Trombones invendus (unusedClips dans UP) — ex. Chaîne d'approvisionnement auto-correctrice. */
+    readonly unsold?: number,
+    /** Énergie stockée en batterie (MW·s) — ex. Exploration spatiale. */
+    readonly storedPower?: number,
+    /** Trombones fabriqués, y compris vendus (ex. Usines à trombones : 100M clips). */
+    readonly clips?: number,
   ) {}
 
   static of(partial: {
@@ -18,6 +24,9 @@ export class ProjectCost {
     funds?: number;
     yomi?: number;
     spendTrust?: boolean;
+    unsold?: number;
+    storedPower?: number;
+    clips?: number;
   }): ProjectCost {
     return new ProjectCost(
       partial.ops,
@@ -26,6 +35,9 @@ export class ProjectCost {
       partial.funds,
       partial.yomi,
       partial.spendTrust ?? true,
+      partial.unsold,
+      partial.storedPower,
+      partial.clips,
     );
   }
 
@@ -37,6 +49,14 @@ export class ProjectCost {
     if (this.trust !== undefined && state.trust < this.trust) return false;
     if (this.funds !== undefined && state.funds < this.funds) return false;
     if (this.yomi !== undefined && state.yomi < this.yomi) return false;
+    if (this.unsold !== undefined && state.unsold < this.unsold) return false;
+    if (
+      this.storedPower !== undefined &&
+      state.storedPower < this.storedPower
+    ) {
+      return false;
+    }
+    if (this.clips !== undefined && state.clips < this.clips) return false;
     return true;
   }
 
@@ -47,6 +67,9 @@ export class ProjectCost {
     if (this.trust !== undefined && this.spendTrust) state.trust -= this.trust;
     if (this.funds !== undefined) state.funds -= this.funds;
     if (this.yomi !== undefined) state.yomi -= this.yomi;
+    if (this.unsold !== undefined) state.unsold -= this.unsold;
+    if (this.storedPower !== undefined) state.storedPower -= this.storedPower;
+    if (this.clips !== undefined) state.clips -= this.clips;
   }
 
   /** Texte du coût pour l'interface (ex. « 750 ops · 50 créat. »). */
@@ -71,6 +94,17 @@ export class ProjectCost {
     }
     if (this.yomi !== undefined) {
       parts.push(`${this.yomi.toLocaleString("fr-FR")} yomi`);
+    }
+    if (this.unsold !== undefined) {
+      parts.push(`${this.unsold.toLocaleString("fr-FR")} trombones invendus`);
+    }
+    if (this.storedPower !== undefined) {
+      parts.push(
+        `${this.storedPower.toLocaleString("fr-FR")} MW·s stockés`,
+      );
+    }
+    if (this.clips !== undefined) {
+      parts.push(`${this.clips.toLocaleString("fr-FR")} trombones`);
     }
     return parts.join(" · ");
   }
