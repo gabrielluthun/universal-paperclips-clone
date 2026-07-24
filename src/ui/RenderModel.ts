@@ -23,4 +23,5 @@ export interface RenderModel {
   readonly avgRev: number;
   activateProject(id: string): void;
   acknowledgePhase1End(): void;
+  acknowledgePhase2End(): void;
 }

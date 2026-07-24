@@ -111,6 +111,10 @@ export class Game {
     this.state.phase1EndAcknowledged = true;
   }
 
+  acknowledgePhase2End(): void {
+    this.state.phase2EndAcknowledged = true;
+  }
+
   /** Démarre tick, autosave et rendu après l’écran titre. */
   private beginGameLoop(): void {
     if (this.gameLoopStarted) return;
@@ -155,7 +159,10 @@ export class Game {
     new StrategicController(this.strategic).bind();
     new QuantumController(this.quantum).bind();
     new LandController(this.land).bind();
-    new PhaseController(() => this.acknowledgePhase1End()).bind();
+    new PhaseController(
+      () => this.acknowledgePhase1End(),
+      () => this.acknowledgePhase2End(),
+    ).bind();
     this.lifecycle.bindResetButton();
   }
 }
