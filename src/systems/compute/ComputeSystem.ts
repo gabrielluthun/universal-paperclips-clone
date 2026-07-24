@@ -31,14 +31,33 @@ export class ComputeSystem extends GameSystem {
     }
   }
 
+  /**
+   * Une fois l'informatique en essaim débloquée, l'allocation se paie en
+   * cadeaux (`swarmGifts`) et non plus en confiance (comme dans UP).
+   */
+  private canSpendAllocationPoint(): boolean {
+    if (this.state.swarmComputingUnlocked) {
+      return this.state.swarmGifts >= 1;
+    }
+    return this.getAvailableTrustPoints() >= 1;
+  }
+
+  private spendAllocationPoint(): void {
+    if (this.state.swarmComputingUnlocked) {
+      this.state.swarmGifts -= 1;
+    }
+  }
+
   allocateProcessor(): boolean {
-    if (this.getAvailableTrustPoints() < 1) return false;
+    if (!this.canSpendAllocationPoint()) return false;
+    this.spendAllocationPoint();
     this.state.processors += 1;
     return true;
   }
 
   allocateMemory(): boolean {
-    if (this.getAvailableTrustPoints() < 1) return false;
+    if (!this.canSpendAllocationPoint()) return false;
+    this.spendAllocationPoint();
     this.state.memory += 1;
     return true;
   }
