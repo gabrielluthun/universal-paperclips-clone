@@ -54,5 +54,15 @@ export function createPhase2Projects(): Project[] {
         s.harvesterDronesUnlocked = true;
       },
     ),
+    new ConfigurableProject(
+      "wireDrones",
+      "Drones fileurs",
+      "Transforment la matière première récoltée en fil. Débloque leur achat.",
+      ProjectCost.of({ ops: 25_000 }),
+      (s) => done(s, "nanoscaleWireProduction") && done(s, "harvesterDrones"),
+      (s) => {
+        s.wireDronesUnlocked = true;
+      },
+    ),
   ];
 }
