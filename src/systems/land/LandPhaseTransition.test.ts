@@ -62,10 +62,21 @@ describe("Phase 2 : parcours complet jusqu'à la transition phase 3", () => {
     expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
       "spaceExploration",
     );
+    state.solarFarms = 8;
+    state.harvesterDrones = 20;
+    state.wireDrones = 30;
+    state.clipFactories = 4;
+    state.swarmGifts = 3;
+
     expect(projects.activateProject("spaceExploration")).toBe(true);
 
     expect(state.phase).toBe(3);
     expect(state.phase2Complete).toBe(true);
     expect(state.phase2EndAcknowledged).toBe(false);
+    expect(state.solarFarms).toBe(0);
+    expect(state.harvesterDrones).toBe(0);
+    expect(state.wireDrones).toBe(0);
+    expect(state.clipFactories).toBe(0);
+    expect(state.swarmGifts).toBe(3);
   });
 });

@@ -168,6 +168,26 @@ export function createPhase2Projects(): Project[] {
       // matière terrestre épuisée reste la condition de gameplay principale.
       (s) => s.availableMatter <= 0n,
       (s) => {
+        // Démantèle l'infrastructure terrestre (fermes, batteries, drones,
+        // usines, stocks matière/fil) tout en conservant cadeaux / calcul.
+        s.solarFarms = 0;
+        s.batteries = 0;
+        s.storedPower = 0;
+        s.power = 0;
+        s.harvesterDrones = 0;
+        s.wireDrones = 0;
+        s.clipFactories = 0;
+        s.clipFactoryCost = 100_000_000n;
+        s.acquiredMatter = 0n;
+        s.wire = 0n;
+        s.powMod = 0;
+        s.sliderPos = 0;
+        s.boredomLevel = 0;
+        s.boredomActive = false;
+        s.disorgCounter = 0;
+        s.disorgActive = false;
+        s.giftBits = 0;
+
         s.phase2Complete = true;
         s.phase2EndAcknowledged = false;
         s.phase = 3;

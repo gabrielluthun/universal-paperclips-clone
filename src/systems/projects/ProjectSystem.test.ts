@@ -366,6 +366,14 @@ describe("ProjectSystem", () => {
     );
 
     state.availableMatter = 0n;
+    state.solarFarms = 12;
+    state.batteries = 3;
+    state.harvesterDrones = 40;
+    state.wireDrones = 60;
+    state.clipFactories = 5;
+    state.acquiredMatter = 1_000n;
+    state.wire = 2_000n;
+    state.swarmGifts = 7;
     expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
       "spaceExploration",
     );
@@ -376,6 +384,14 @@ describe("ProjectSystem", () => {
     expect(state.phase).toBe(3);
     expect(state.phase2Complete).toBe(true);
     expect(state.phase2EndAcknowledged).toBe(false);
+    expect(state.solarFarms).toBe(0);
+    expect(state.batteries).toBe(0);
+    expect(state.harvesterDrones).toBe(0);
+    expect(state.wireDrones).toBe(0);
+    expect(state.clipFactories).toBe(0);
+    expect(state.acquiredMatter).toBe(0n);
+    expect(state.wire).toBe(0n);
+    expect(state.swarmGifts).toBe(7);
   });
 
   it("les projets phase 2 restent invisibles en phase 1", () => {
