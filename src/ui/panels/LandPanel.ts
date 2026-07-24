@@ -14,6 +14,13 @@ export class LandPanel {
     requireElement<HTMLSpanElement>("solar-farm-cost");
   private readonly btnBuySolarFarm =
     requireElement<HTMLButtonElement>("btn-buy-solar-farm");
+  private readonly batteries = requireElement<HTMLSpanElement>("batteries");
+  private readonly storedPower =
+    requireElement<HTMLSpanElement>("stored-power");
+  private readonly batteryCost =
+    requireElement<HTMLSpanElement>("battery-cost");
+  private readonly btnBuyBattery =
+    requireElement<HTMLButtonElement>("btn-buy-battery");
 
   private readonly dronesPanel = requireElement<HTMLElement>(
     "panel-land-drones",
@@ -52,6 +59,18 @@ export class LandPanel {
       const farmCost = land.getNextSolarFarmCost();
       this.solarFarmCost.textContent = NumberFormatter.formatInteger(farmCost);
       this.btnBuySolarFarm.disabled = state.clips < farmCost;
+
+      this.batteries.textContent = NumberFormatter.formatInteger(
+        state.batteries,
+      );
+      this.storedPower.textContent = `${NumberFormatter.formatCompact(
+        state.storedPower,
+      )}\u00A0/\u00A0${NumberFormatter.formatCompact(
+        land.getBatteryCapacity(),
+      )}\u00A0MW·s`;
+      const batteryCost = land.getNextBatteryCost();
+      this.batteryCost.textContent = NumberFormatter.formatInteger(batteryCost);
+      this.btnBuyBattery.disabled = state.clips < batteryCost;
     }
 
     const showDrones = state.harvesterDronesUnlocked || state.wireDronesUnlocked;

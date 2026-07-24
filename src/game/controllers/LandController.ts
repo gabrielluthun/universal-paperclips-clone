@@ -7,6 +7,7 @@ export class LandController {
 
   bind(): void {
     bindClick("btn-buy-solar-farm", () => this.land.purchaseSolarFarm());
+    bindClick("btn-buy-battery", () => this.land.purchaseBattery());
     bindClick("btn-buy-harvester-drone", () =>
       this.land.purchaseHarvesterDrone(),
     );
