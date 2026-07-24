@@ -170,9 +170,19 @@
               <span>Usines à trombones</span>
               <span class="value" id="clip-factories">0</span>
             </div>
+            <div class="row">
+              <span>Production</span>
+              <span class="value" id="factory-clip-rate">0&nbsp;/&nbsp;s</span>
+            </div>
             <button id="btn-buy-clip-factory" type="button">
               Acheter une Usine (<span id="clip-factory-cost">100&nbsp;000&nbsp;000</span>)
             </button>
+            <div class="price-controls mt-2">
+              <button id="btn-buy-clip-factory-10" type="button">+10</button>
+              <button id="btn-buy-clip-factory-100" type="button">+100</button>
+              <button id="btn-disassemble-clip-factory" type="button">−1</button>
+              <button id="btn-disassemble-all-clip-factories" type="button">Tout</button>
+            </div>
           </section>
 
           <section class="panel" id="panel-land-drones" hidden>
@@ -186,6 +196,10 @@
               <span class="value" id="available-matter">0&nbsp;g</span>
             </div>
             <div class="row">
+              <span>Récolte</span>
+              <span class="value" id="matter-rate">0&nbsp;g/s</span>
+            </div>
+            <div class="row">
               <span>Matière acquise</span>
               <span class="value" id="acquired-matter">0&nbsp;g</span>
             </div>
@@ -194,12 +208,22 @@
               <span class="value" id="land-wire">0&nbsp;cm</span>
             </div>
             <div class="row">
+              <span>Filage</span>
+              <span class="value" id="land-wire-rate">0&nbsp;/&nbsp;s</span>
+            </div>
+            <div class="row">
               <span>Drones récolteurs</span>
               <span class="value" id="harvester-drones">0</span>
             </div>
             <button id="btn-buy-harvester-drone" type="button">
               Acheter un Drone récolteur (<span id="harvester-drone-cost">1&nbsp;000&nbsp;000</span>)
             </button>
+            <div class="price-controls mt-2">
+              <button id="btn-buy-harvester-drone-10" type="button">+10</button>
+              <button id="btn-buy-harvester-drone-100" type="button">+100</button>
+              <button id="btn-disassemble-harvester-drone" type="button">−1</button>
+              <button id="btn-disassemble-all-harvester-drones" type="button">Tout</button>
+            </div>
             <div class="row mt-2">
               <span>Drones fileurs</span>
               <span class="value" id="wire-drones">0</span>
@@ -207,6 +231,12 @@
             <button id="btn-buy-wire-drone" type="button">
               Acheter un Drone fileur (<span id="wire-drone-cost">1&nbsp;000&nbsp;000</span>)
             </button>
+            <div class="price-controls mt-2">
+              <button id="btn-buy-wire-drone-10" type="button">+10</button>
+              <button id="btn-buy-wire-drone-100" type="button">+100</button>
+              <button id="btn-disassemble-wire-drone" type="button">−1</button>
+              <button id="btn-disassemble-all-wire-drones" type="button">Tout</button>
+            </div>
             <p class="mt-2 text-[0.9em] text-muted">
               Ratio recommandé : environ 1,618 Drone fileur par Drone récolteur.
             </p>
@@ -216,7 +246,7 @@
         <div class="panels-col" id="col-center">
           <section class="panel" id="panel-compute">
             <h2>Ressources de calcul</h2>
-            <div class="row">
+            <div class="row" id="trust-row">
               <span>Confiance</span>
               <span class="value">
                 <span id="trust">2</span>
@@ -225,9 +255,13 @@
                 >
               </span>
             </div>
-            <div class="row">
+            <div class="row" id="next-trust-row">
               <span>Prochain palier</span>
               <span class="value" id="next-trust">3&nbsp;000</span>
+            </div>
+            <div class="row" id="compute-swarm-gifts-row" hidden>
+              <span>Cadeaux de calcul</span>
+              <span class="value" id="compute-swarm-gifts">0</span>
             </div>
             <div class="row">
               <span>Processeurs</span>
@@ -237,7 +271,7 @@
                   id="btn-add-processor"
                   type="button"
                   class="btn-inline"
-                  title="Allouer 1 confiance"
+                  title="Allouer 1 point"
                 >
                   +
                 </button>
@@ -251,7 +285,7 @@
                   id="btn-add-memory"
                   type="button"
                   class="btn-inline"
-                  title="Allouer 1 confiance"
+                  title="Allouer 1 point"
                 >
                   +
                 </button>
@@ -402,6 +436,12 @@
             <button id="btn-buy-solar-farm" type="button">
               Acheter une Ferme solaire (<span id="solar-farm-cost">1&nbsp;000&nbsp;000</span>)
             </button>
+            <div class="price-controls mt-2">
+              <button id="btn-buy-solar-farm-10" type="button">+10</button>
+              <button id="btn-buy-solar-farm-100" type="button">+100</button>
+              <button id="btn-disassemble-solar-farm" type="button">−1</button>
+              <button id="btn-disassemble-all-solar-farms" type="button">Tout</button>
+            </div>
             <div class="row mt-2">
               <span>Batteries</span>
               <span class="value" id="batteries">0</span>
@@ -413,6 +453,12 @@
             <button id="btn-buy-battery" type="button">
               Acheter une Batterie (<span id="battery-cost">1&nbsp;000&nbsp;000</span>)
             </button>
+            <div class="price-controls mt-2">
+              <button id="btn-buy-battery-10" type="button">+10</button>
+              <button id="btn-buy-battery-100" type="button">+100</button>
+              <button id="btn-disassemble-battery" type="button">−1</button>
+              <button id="btn-disassemble-all-batteries" type="button">Tout</button>
+            </div>
           </section>
 
           <section class="panel" id="panel-land-swarm" hidden>
@@ -420,6 +466,10 @@
             <div class="row">
               <span>Taille de l'essaim</span>
               <span class="value" id="swarm-size">0</span>
+            </div>
+            <div class="row">
+              <span>Statut</span>
+              <span class="value" id="swarm-status">—</span>
             </div>
             <div class="row">
               <span>Cadeaux de calcul</span>
