@@ -189,6 +189,30 @@ describe("ProjectSystem", () => {
     expect(state.harvesterDronesUnlocked).toBe(true);
   });
 
+  it("phase 2 : Drones fileurs débloqués après fil nanométrique + drones récolteurs", () => {
+    const state = GameState.createInitial();
+    state.phase = 2;
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.ops = 25_000;
+    state.markProjectCompleted("tothTubuleEnfolding");
+    state.markProjectCompleted("powerGrid");
+    state.markProjectCompleted("harvesterDrones");
+    const projects = new ProjectSystem(state);
+
+    // Manque encore nanoscaleWireProduction.
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "wireDrones",
+    );
+
+    state.markProjectCompleted("nanoscaleWireProduction");
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "wireDrones",
+    );
+    expect(projects.activateProject("wireDrones")).toBe(true);
+    expect(state.ops).toBe(0);
+    expect(state.wireDronesUnlocked).toBe(true);
+  });
+
   it("les projets phase 2 restent invisibles en phase 1", () => {
     const state = GameState.createInitial();
     state.clips = PROJECTS_UNLOCK_CLIPS;
