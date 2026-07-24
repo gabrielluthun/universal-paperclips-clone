@@ -24,6 +24,10 @@ export type SaveMigration = (
  *
  * v7 → v8 : scinde l'ancien champ unique `matter` en `availableMatter`
  * (stock terrestre initial) et `acquiredMatter` (matière récoltée).
+ *
+ * v8 → v9 : renomme `powerBanked` en `storedPower` (mécanique de batterie
+ * fidèle à UP, qui tamponne les déficits de puissance) et ajoute
+ * `batteries`, `powMod` et `sliderPos`.
  */
 export const SAVE_MIGRATIONS: Record<number, SaveMigration> = {
   6: (data) => ({
@@ -41,6 +45,19 @@ export const SAVE_MIGRATIONS: Record<number, SaveMigration> = {
       // L'ancien `matter` représentait le stock récolté (toujours 0 en pratique).
       acquiredMatter: legacyMatter,
       version: 8,
+    };
+  },
+  8: (data) => {
+    const legacyStored =
+      typeof data.powerBanked === "number" ? data.powerBanked : 0;
+    const { powerBanked: _removed, ...rest } = data;
+    return {
+      ...rest,
+      storedPower: legacyStored,
+      batteries: 0,
+      powMod: 0,
+      sliderPos: 0,
+      version: 9,
     };
   },
 };

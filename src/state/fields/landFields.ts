@@ -15,8 +15,23 @@ export interface LandFields {
   solarFarms: number;
   /** Puissance générée au dernier tick (valeur d'affichage). */
   power: number;
-  /** Énergie cumulée engrangée (batteries), compte vers le seuil d'Exploration spatiale. */
-  powerBanked: number;
+  /** Nombre de Batteries possédées (tampon d'énergie). */
+  batteries: number;
+  /** Énergie actuellement stockée dans les batteries (MW·s). */
+  storedPower: number;
+  /**
+   * Performance courante des drones/usines (0 à 1, peut dépasser 1 avec
+   * Élan). Persisté car Élan l'incrémente progressivement au fil du temps
+   * tant que l'alimentation est à 100 %.
+   */
+  powMod: number;
+  /**
+   * Position du curseur Travail/Réflexion (0 = tout Travail, 100 = tout
+   * Réflexion). Révélé par le projet Informatique en essaim ; en attendant,
+   * reste à 0 (comme dans UP), ce qui correspond à un facteur de production
+   * ×2 sur la récolte/le filage (formule UP : (200-sliderPos)/100).
+   */
+  sliderPos: number;
 
   // --- Drones & fil ---
   /**
@@ -58,7 +73,10 @@ export function createLandFields(): LandFields {
 
     solarFarms: 0,
     power: 0,
-    powerBanked: 0,
+    batteries: 0,
+    storedPower: 0,
+    powMod: 0,
+    sliderPos: 0,
 
     availableMatter: Math.pow(10, 24) * 6000,
     acquiredMatter: 0,
