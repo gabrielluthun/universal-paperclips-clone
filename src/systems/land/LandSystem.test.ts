@@ -52,41 +52,106 @@ describe("LandSystem", () => {
     expect(land.purchaseSolarFarm()).toBe(false);
   });
 
-  it("récolte de la matière à pleine puissance quand l'électricité suffit", () => {
+  it("calcule le coût des Batteries selon la formule UP (1M, puis (n+1)^2.54 × 1e7)", () => {
+    const state = GameState.createInitial();
+    state.powerGridUnlocked = true;
+    const land = new LandSystem(state);
+
+    expect(land.getNextBatteryCost()).toBe(1_000_000);
+
+    state.batteries = 1;
+    expect(land.getNextBatteryCost()).toBeCloseTo(58_158_900.69, 0);
+
+    state.batteries = 2;
+    expect(land.getNextBatteryCost()).toBeCloseTo(162_887_585.96, 0);
+  });
+
+  it("achète une Batterie et augmente la capacité de stockage (10 000 MW·s/unité)", () => {
+    const state = GameState.createInitial();
+    state.powerGridUnlocked = true;
+    state.clips = 1_000_000;
+    const land = new LandSystem(state);
+
+    expect(land.getBatteryCapacity()).toBe(0);
+    expect(land.purchaseBattery()).toBe(true);
+    expect(state.batteries).toBe(1);
+    expect(state.clips).toBe(0);
+    expect(land.getBatteryCapacity()).toBe(10_000);
+  });
+
+  it("récolte de la matière à pleine puissance quand l'électricité suffit (formule UP : harvesterRate × workFactor)", () => {
     const state = GameState.createInitial();
     state.powerGridUnlocked = true;
     state.harvesterDronesUnlocked = true;
     state.solarFarms = 1; // 50 MW
     state.harvesterDrones = 10; // demande 10 MW < 50 MW dispo
+    state.batteries = 1; // capacité 10 000 MW·s, largement suffisante
     const initialMatter = state.availableMatter;
     const land = new LandSystem(state);
 
     land.update(1000); // 1 seconde
 
     expect(land.getPowerRatio()).toBe(1);
-    const expectedHarvested = 10 * 5_235_700_000;
+    // sliderPos par défaut = 0 → workFactor = (200-0)/100 = 2.
+    const expectedHarvested = 10 * 26_180_337 * 2;
     expect(state.acquiredMatter).toBeCloseTo(expectedHarvested, 0);
     expect(state.availableMatter).toBeCloseTo(initialMatter - expectedHarvested, 0);
-    // Surplus de puissance (50 - 10 MW) banké.
-    expect(state.powerBanked).toBeCloseTo(40, 5);
+    // Surplus de puissance (50 - 10 MW) stocké dans les batteries.
+    expect(state.storedPower).toBeCloseTo(40, 5);
+    expect(state.powMod).toBe(1);
   });
 
-  it("ralentit la récolte quand la puissance ne suffit pas pour tous les drones", () => {
+  it("ralentit la récolte quand la puissance ne suffit pas et que la batterie est vide", () => {
     const state = GameState.createInitial();
     state.powerGridUnlocked = true;
     state.harvesterDronesUnlocked = true;
     state.solarFarms = 1; // 50 MW
-    state.harvesterDrones = 100; // demande 100 MW > 50 MW dispo → ratio 0.5
+    state.harvesterDrones = 100; // demande 100 MW > 50 MW dispo → déficit 50 MW
     const land = new LandSystem(state);
 
     expect(land.getPowerRatio()).toBeCloseTo(0.5, 5);
 
     land.update(1000);
 
-    const expectedHarvested = 100 * 5_235_700_000 * 0.5;
+    expect(state.powMod).toBeCloseTo(0.5, 5);
+    const expectedHarvested = 100 * 26_180_337 * 2 * 0.5;
     expect(state.acquiredMatter).toBeCloseTo(expectedHarvested, 0);
-    // Puissance entièrement consommée par les drones : rien à stocker.
-    expect(state.powerBanked).toBe(0);
+    expect(state.storedPower).toBe(0);
+  });
+
+  it("puise dans la batterie pour absorber un déficit ponctuel sans ralentir (fidèle à UP)", () => {
+    const state = GameState.createInitial();
+    state.powerGridUnlocked = true;
+    state.harvesterDronesUnlocked = true;
+    state.solarFarms = 1; // 50 MW
+    state.harvesterDrones = 60; // demande 60 MW → déficit 10 MW
+    state.batteries = 1;
+    state.storedPower = 5000; // largement de quoi couvrir le déficit
+    const land = new LandSystem(state);
+
+    land.update(1000); // déficit = 10 MW·s, entièrement couvert par la batterie
+
+    expect(state.powMod).toBe(1);
+    expect(state.storedPower).toBeCloseTo(4990, 5);
+    const expectedHarvested = 60 * 26_180_337 * 2; // pleine performance
+    expect(state.acquiredMatter).toBeCloseTo(expectedHarvested, 0);
+  });
+
+  it("ralentit partiellement quand la batterie ne couvre qu'une partie du déficit", () => {
+    const state = GameState.createInitial();
+    state.powerGridUnlocked = true;
+    state.harvesterDronesUnlocked = true;
+    state.solarFarms = 1; // 50 MW
+    state.harvesterDrones = 60; // demande 60 MW → déficit 10 MW·s sur 1 s
+    state.batteries = 1;
+    state.storedPower = 5; // ne couvre qu'une fraction du déficit
+
+    const land = new LandSystem(state);
+    land.update(1000);
+
+    expect(state.storedPower).toBe(0);
+    // unmet = 10 - 5 = 5 MW·s sur une demande de 60 MW·s → powMod = 1 - 5/60.
+    expect(state.powMod).toBeCloseTo(1 - 5 / 60, 5);
   });
 
   it("ne récolte rien tant que les Drones récolteurs ne sont pas débloqués", () => {
@@ -136,7 +201,7 @@ describe("LandSystem", () => {
     expect(state.wireDrones).toBe(1);
   });
 
-  it("convertit la matière acquise en fil via les Drones fileurs", () => {
+  it("convertit la matière acquise en fil via les Drones fileurs (formule UP : wireDroneRate × workFactor)", () => {
     const state = GameState.createInitial();
     state.powerGridUnlocked = true;
     state.wireDronesUnlocked = true;
@@ -148,7 +213,7 @@ describe("LandSystem", () => {
 
     land.update(1000);
 
-    const expectedConverted = 5 * 3_235_700_000;
+    const expectedConverted = 5 * 16_180_339 * 2;
     expect(state.wire).toBeCloseTo(initialWire + expectedConverted, 0);
     expect(state.acquiredMatter).toBeCloseTo(100_000_000_000 - expectedConverted, 0);
   });
@@ -167,5 +232,16 @@ describe("LandSystem", () => {
 
     expect(state.acquiredMatter).toBe(0);
     expect(state.wire).toBeCloseTo(initialWire + 10, 5);
+  });
+
+  it("les Usines à trombones comptent aussi dans la demande de puissance (200 MW/usine)", () => {
+    const state = GameState.createInitial();
+    state.powerGridUnlocked = true;
+    state.solarFarms = 5; // 250 MW
+    state.clipFactories = 1; // 200 MW
+    const land = new LandSystem(state);
+
+    expect(land.getPowerDemand()).toBe(200);
+    expect(land.getPowerRatio()).toBe(1);
   });
 });
