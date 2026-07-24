@@ -74,5 +74,15 @@ export function createPhase2Projects(): Project[] {
         s.clipFactoriesUnlocked = true;
       },
     ),
+    new ConfigurableProject(
+      "swarmComputing",
+      "Informatique en essaim",
+      "Exploite la flotte de drones pour augmenter la capacité de calcul. Débloque le curseur Travail/Réflexion.",
+      ProjectCost.of({ yomi: 12_000 }),
+      (s) => s.harvesterDrones + s.wireDrones >= 200,
+      (s) => {
+        s.swarmComputingUnlocked = true;
+      },
+    ),
   ];
 }
