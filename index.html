@@ -317,6 +317,39 @@
           </button>
         </section>
 
+        <section class="panel" id="panel-land-drones" hidden>
+          <h2>Drones</h2>
+          <div class="row">
+            <span>Puissance utilisée</span>
+            <span class="value" id="drone-power-ratio">100&nbsp;%</span>
+          </div>
+          <div class="row">
+            <span>Matière disponible</span>
+            <span class="value" id="available-matter">0&nbsp;g</span>
+          </div>
+          <div class="row">
+            <span>Matière acquise</span>
+            <span class="value" id="acquired-matter">0&nbsp;g</span>
+          </div>
+          <div class="row">
+            <span>Drones récolteurs</span>
+            <span class="value" id="harvester-drones">0</span>
+          </div>
+          <button id="btn-buy-harvester-drone" type="button">
+            Acheter un Drone récolteur (<span id="harvester-drone-cost">1&nbsp;000&nbsp;000</span>)
+          </button>
+          <div class="row mt-2">
+            <span>Drones fileurs</span>
+            <span class="value" id="wire-drones">0</span>
+          </div>
+          <button id="btn-buy-wire-drone" type="button">
+            Acheter un Drone fileur (<span id="wire-drone-cost">1&nbsp;000&nbsp;000</span>)
+          </button>
+          <p class="mt-2 text-[0.9em] text-muted">
+            Ratio recommandé : environ 1,618 Drone fileur par Drone récolteur.
+          </p>
+        </section>
+
       </main>
 
       <main class="mt-3.5 grid grid-cols-1 gap-3.5">
