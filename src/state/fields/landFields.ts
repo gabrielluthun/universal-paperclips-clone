@@ -48,6 +48,12 @@ export interface LandFields {
 
   // --- Usines ---
   clipFactories: number;
+  /**
+   * Coût (en trombones) de la prochaine Usine. Persisté car la formule UP
+   * n'est pas une fonction pure du nombre d'usines : chaque achat multiplie
+   * le coût courant par un facteur dépendant du palier atteint.
+   */
+  clipFactoryCost: number;
   /** Multiplicateur cumulatif d'efficacité des usines. */
   factoryEfficiencyBonus: number;
 
@@ -85,6 +91,7 @@ export function createLandFields(): LandFields {
     droneEfficiencyBonus: 1,
 
     clipFactories: 0,
+    clipFactoryCost: 100_000_000,
     factoryEfficiencyBonus: 1,
 
     swarmCompute: 0,

@@ -28,6 +28,9 @@ export type SaveMigration = (
  * v8 → v9 : renomme `powerBanked` en `storedPower` (mécanique de batterie
  * fidèle à UP, qui tamponne les déficits de puissance) et ajoute
  * `batteries`, `powMod` et `sliderPos`.
+ *
+ * v9 → v10 : ajoute `clipFactoryCost` (coût persisté de la prochaine Usine,
+ * la formule UP n'étant pas une fonction pure du nombre d'usines).
  */
 export const SAVE_MIGRATIONS: Record<number, SaveMigration> = {
   6: (data) => ({
@@ -60,6 +63,11 @@ export const SAVE_MIGRATIONS: Record<number, SaveMigration> = {
       version: 9,
     };
   },
+  9: (data) => ({
+    ...data,
+    clipFactoryCost: 100_000_000,
+    version: 10,
+  }),
 };
 
 /**
