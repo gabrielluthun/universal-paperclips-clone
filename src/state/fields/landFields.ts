@@ -58,8 +58,20 @@ export interface LandFields {
   factoryEfficiencyBonus: number;
 
   // --- Informatique en essaim ---
-  /** Capacité de calcul générée par le swarm (paie certains projets de phase 2). */
-  swarmCompute: number;
+  /** « Cadeaux » de capacité de calcul offerts par le swarm (swarmGifts dans UP). */
+  swarmGifts: number;
+  /** Accumulateur interne avant le prochain cadeau (giftBits dans UP). */
+  giftBits: number;
+  /** Niveau d'ennui du swarm : grimpe s'il n'y a plus de matière à récolter. */
+  boredomLevel: number;
+  /** Swarm ennuyé : plus aucun cadeau généré tant que non résolu (Distraire le swarm). */
+  boredomActive: boolean;
+  /** Coût (en créativité) pour distraire le swarm ; augmente à chaque usage. */
+  entertainSwarmCost: number;
+  /** Déséquilibre récolteurs/fileurs : grimpe si le ratio dépasse 1,5. */
+  disorgCounter: number;
+  /** Swarm désorganisé : plus aucun cadeau généré tant que non resynchronisé. */
+  disorgActive: boolean;
 
   // --- Fin de phase ---
   phase2Complete: boolean;
@@ -94,7 +106,13 @@ export function createLandFields(): LandFields {
     clipFactoryCost: 100_000_000,
     factoryEfficiencyBonus: 1,
 
-    swarmCompute: 0,
+    swarmGifts: 0,
+    giftBits: 0,
+    boredomLevel: 0,
+    boredomActive: false,
+    entertainSwarmCost: 10_000,
+    disorgCounter: 0,
+    disorgActive: false,
 
     phase2Complete: false,
     phase2EndAcknowledged: false,

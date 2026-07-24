@@ -31,6 +31,11 @@ export type SaveMigration = (
  *
  * v9 → v10 : ajoute `clipFactoryCost` (coût persisté de la prochaine Usine,
  * la formule UP n'étant pas une fonction pure du nombre d'usines).
+ *
+ * v10 → v11 : renomme `swarmCompute` en `swarmGifts` (fidèle à UP) et ajoute
+ * les mécaniques d'ennui/désorganisation du swarm (`giftBits`,
+ * `boredomLevel`, `boredomActive`, `entertainSwarmCost`, `disorgCounter`,
+ * `disorgActive`).
  */
 export const SAVE_MIGRATIONS: Record<number, SaveMigration> = {
   6: (data) => ({
@@ -68,6 +73,22 @@ export const SAVE_MIGRATIONS: Record<number, SaveMigration> = {
     clipFactoryCost: 100_000_000,
     version: 10,
   }),
+  10: (data) => {
+    const legacyGifts =
+      typeof data.swarmCompute === "number" ? data.swarmCompute : 0;
+    const { swarmCompute: _removed, ...rest } = data;
+    return {
+      ...rest,
+      swarmGifts: legacyGifts,
+      giftBits: 0,
+      boredomLevel: 0,
+      boredomActive: false,
+      entertainSwarmCost: 10_000,
+      disorgCounter: 0,
+      disorgActive: false,
+      version: 11,
+    };
+  },
 };
 
 /**
