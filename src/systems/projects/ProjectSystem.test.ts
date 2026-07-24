@@ -172,6 +172,23 @@ describe("ProjectSystem", () => {
     expect(state.nanoscaleWireUnlocked).toBe(true);
   });
 
+  it("phase 2 : Drones récolteurs débloqués après le Réseau électrique", () => {
+    const state = GameState.createInitial();
+    state.phase = 2;
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.ops = 25_000;
+    state.markProjectCompleted("tothTubuleEnfolding");
+    state.markProjectCompleted("powerGrid");
+    const projects = new ProjectSystem(state);
+
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "harvesterDrones",
+    );
+    expect(projects.activateProject("harvesterDrones")).toBe(true);
+    expect(state.ops).toBe(0);
+    expect(state.harvesterDronesUnlocked).toBe(true);
+  });
+
   it("les projets phase 2 restent invisibles en phase 1", () => {
     const state = GameState.createInitial();
     state.clips = PROJECTS_UNLOCK_CLIPS;
