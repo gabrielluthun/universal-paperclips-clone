@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Trombones</title>
     <link rel="icon" href="./trombone-logo.png" />
-    <script type="module" crossorigin src="./assets/index-C1pKiuW_.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-C7KyZlhg.css">
+    <script type="module" crossorigin src="./assets/index-CPaUHIsF.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BCThpX3z.css">
   </head>
   <body>
     <div id="title-screen" class="title-screen" role="dialog" aria-label="Écran titre">
@@ -179,11 +179,14 @@
             <button id="btn-buy-clip-factory" type="button">
               Acheter une Usine (<span id="clip-factory-cost">100&nbsp;000&nbsp;000</span>)
             </button>
-            <div class="price-controls mt-2">
-              <button id="btn-buy-clip-factory-10" type="button">+10</button>
-              <button id="btn-buy-clip-factory-100" type="button">+100</button>
-              <button id="btn-disassemble-clip-factory" type="button">−1</button>
-              <button id="btn-disassemble-all-clip-factories" type="button">Tout</button>
+            <div class="qty-controls">
+              <div class="qty-controls-buy">
+                <button id="btn-buy-clip-factory-10" type="button">+10</button>
+                <button id="btn-buy-clip-factory-100" type="button">+100</button>
+              </div>
+              <button id="btn-disassemble-all-clip-factories" type="button" class="qty-disassemble">
+                Tout désassembler
+              </button>
             </div>
           </section>
 
@@ -220,11 +223,14 @@
             <button id="btn-buy-harvester-drone" type="button">
               Acheter un Drone récolteur (<span id="harvester-drone-cost">1&nbsp;000&nbsp;000</span>)
             </button>
-            <div class="price-controls mt-2">
-              <button id="btn-buy-harvester-drone-10" type="button">+10</button>
-              <button id="btn-buy-harvester-drone-100" type="button">+100</button>
-              <button id="btn-disassemble-harvester-drone" type="button">−1</button>
-              <button id="btn-disassemble-all-harvester-drones" type="button">Tout</button>
+            <div class="qty-controls">
+              <div class="qty-controls-buy">
+                <button id="btn-buy-harvester-drone-10" type="button">+10</button>
+                <button id="btn-buy-harvester-drone-100" type="button">+100</button>
+              </div>
+              <button id="btn-disassemble-all-harvester-drones" type="button" class="qty-disassemble">
+                Tout désassembler
+              </button>
             </div>
             <div class="row mt-2">
               <span>Drones fileurs</span>
@@ -233,15 +239,15 @@
             <button id="btn-buy-wire-drone" type="button">
               Acheter un Drone fileur (<span id="wire-drone-cost">1&nbsp;000&nbsp;000</span>)
             </button>
-            <div class="price-controls mt-2">
-              <button id="btn-buy-wire-drone-10" type="button">+10</button>
-              <button id="btn-buy-wire-drone-100" type="button">+100</button>
-              <button id="btn-disassemble-wire-drone" type="button">−1</button>
-              <button id="btn-disassemble-all-wire-drones" type="button">Tout</button>
+            <div class="qty-controls">
+              <div class="qty-controls-buy">
+                <button id="btn-buy-wire-drone-10" type="button">+10</button>
+                <button id="btn-buy-wire-drone-100" type="button">+100</button>
+              </div>
+              <button id="btn-disassemble-all-wire-drones" type="button" class="qty-disassemble">
+                Tout désassembler
+              </button>
             </div>
-            <p class="mt-2 text-[0.9em] text-muted">
-              Ratio recommandé : environ 1,618 Drone fileur par Drone récolteur.
-            </p>
           </section>
         </div>
 
@@ -438,11 +444,14 @@
             <button id="btn-buy-solar-farm" type="button">
               Acheter une Ferme solaire (<span id="solar-farm-cost">1&nbsp;000&nbsp;000</span>)
             </button>
-            <div class="price-controls mt-2">
-              <button id="btn-buy-solar-farm-10" type="button">+10</button>
-              <button id="btn-buy-solar-farm-100" type="button">+100</button>
-              <button id="btn-disassemble-solar-farm" type="button">−1</button>
-              <button id="btn-disassemble-all-solar-farms" type="button">Tout</button>
+            <div class="qty-controls">
+              <div class="qty-controls-buy">
+                <button id="btn-buy-solar-farm-10" type="button">+10</button>
+                <button id="btn-buy-solar-farm-100" type="button">+100</button>
+              </div>
+              <button id="btn-disassemble-all-solar-farms" type="button" class="qty-disassemble">
+                Tout désassembler
+              </button>
             </div>
             <div class="row mt-2">
               <span>Batteries</span>
@@ -455,11 +464,14 @@
             <button id="btn-buy-battery" type="button">
               Acheter une Batterie (<span id="battery-cost">1&nbsp;000&nbsp;000</span>)
             </button>
-            <div class="price-controls mt-2">
-              <button id="btn-buy-battery-10" type="button">+10</button>
-              <button id="btn-buy-battery-100" type="button">+100</button>
-              <button id="btn-disassemble-battery" type="button">−1</button>
-              <button id="btn-disassemble-all-batteries" type="button">Tout</button>
+            <div class="qty-controls">
+              <div class="qty-controls-buy">
+                <button id="btn-buy-battery-10" type="button">+10</button>
+                <button id="btn-buy-battery-100" type="button">+100</button>
+              </div>
+              <button id="btn-disassemble-all-batteries" type="button" class="qty-disassemble">
+                Tout désassembler
+              </button>
             </div>
           </section>
 
