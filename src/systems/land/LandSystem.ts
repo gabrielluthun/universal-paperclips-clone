@@ -2,7 +2,9 @@ import type { GameState } from "../../state/GameState";
 import { GameSystem } from "../core/GameSystem";
 
 /**
- * Constantes phase 2 issues de Universal Paperclips
+ * Constantes phase 2 issues du vrai `globals.js` d'Universal Paperclips
+ * (valeurs initiales des variables globales, distinctes de `main.js` qui ne
+ * contient que les fonctions) : coûts, taux de production et puissance.
  */
 /** Coût de la première ferme (farmLevel = 0). */
 const INITIAL_SOLAR_FARM_COST = 10_000_000;
@@ -32,6 +34,23 @@ const INITIAL_BATTERY_COST = 1_000_000;
 /** Formule UP du coût des Batteries suivantes : (n+1)^2.54 × 1e7. */
 const BATTERY_COST_EXPONENT = 2.54;
 const BATTERY_COST_FACTOR = 10_000_000;
+/** Trombones produits par Usine à pleine puissance (clips/s) — factoryRate. */
+const CLIPS_PER_FACTORY = 1_000_000_000;
+
+/**
+ * Multiplicateur appliqué au coût de l'Usine à chaque achat (fcmod dans UP).
+ * Contrairement aux fermes/drones/batteries, ce n'est pas une fonction pure
+ * du nombre d'usines : c'est un facteur *multiplicatif* appliqué au coût
+ * courant, d'où la nécessité de persister `clipFactoryCost` dans l'état.
+ */
+function getFactoryCostMultiplier(newLevel: number): number {
+  if (newLevel > 0 && newLevel < 8) return 11 - newLevel;
+  if (newLevel < 13) return 2;
+  if (newLevel < 20) return 1.5;
+  if (newLevel < 39) return 1.25;
+  if (newLevel < 79) return 1.15;
+  return 1.1;
+}
 
 /**
  * Système de simulation de la phase 2 (Terre) : grid électrique, drones,
@@ -116,6 +135,22 @@ export class LandSystem extends GameSystem {
     if (s.clips < cost) return false;
     s.clips -= cost;
     s.wireDrones += 1;
+    return true;
+  }
+
+  /** Coût (en trombones) de la prochaine Usine (valeur persistée, formule UP non fermée). */
+  getNextClipFactoryCost(): number {
+    return this.state.clipFactoryCost;
+  }
+
+  purchaseClipFactory(): boolean {
+    const s = this.state;
+    if (!s.clipFactoriesUnlocked) return false;
+    const cost = s.clipFactoryCost;
+    if (s.clips < cost) return false;
+    s.clips -= cost;
+    s.clipFactories += 1;
+    s.clipFactoryCost *= getFactoryCostMultiplier(s.clipFactories);
     return true;
   }
 
@@ -212,6 +247,17 @@ export class LandSystem extends GameSystem {
       const converted = Math.min(wireRate * dt, s.acquiredMatter);
       s.acquiredMatter -= converted;
       s.wire += converted;
+    }
+
+    if (s.clipFactoriesUnlocked) {
+      // Contrairement aux drones, la formule UP n'applique pas le facteur
+      // Travail/Réflexion (sliderPos) à la production des usines.
+      const factoryOutputRate =
+        s.clipFactories * CLIPS_PER_FACTORY * s.factoryEfficiencyBonus * s.powMod;
+      const produced = Math.min(factoryOutputRate * dt, s.wire);
+      s.wire -= produced;
+      s.clips += produced;
+      s.unsold += produced;
     }
   }
 }
