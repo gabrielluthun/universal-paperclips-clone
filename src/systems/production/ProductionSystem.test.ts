@@ -12,26 +12,26 @@ describe("ProductionSystem", () => {
   it("fabrique des trombones et consomme le fil", () => {
     const { state, production } = makeProduction();
     expect(production.produceClips(10)).toBe(10);
-    expect(state.clips).toBe(10);
-    expect(state.unsold).toBe(10);
-    expect(state.wire).toBe(990);
+    expect(state.clips).toBe(10n);
+    expect(state.unsold).toBe(10n);
+    expect(state.wire).toBe(990n);
   });
 
   it("ne fabrique pas plus de trombones que de fil disponible", () => {
     const { state, production } = makeProduction();
-    state.wire = 3;
+    state.wire = 3n;
     expect(production.produceClips(10)).toBe(3);
-    expect(state.clips).toBe(3);
-    expect(state.wire).toBe(0);
+    expect(state.clips).toBe(3n);
+    expect(state.wire).toBe(0n);
   });
 
   it("achète une bobine et augmente le prix de référence du fil", () => {
     const { state, production } = makeProduction();
     state.funds = 20;
-    state.wire = 0;
+    state.wire = 0n;
     expect(production.purchaseWireSpool()).toBe(true);
     expect(state.funds).toBe(0);
-    expect(state.wire).toBe(1000);
+    expect(state.wire).toBe(1000n);
     expect(state.wireBasePrice).toBeCloseTo(20.05, 5);
   });
 
@@ -54,55 +54,55 @@ describe("ProductionSystem", () => {
     state.autoClippers = 10;
     production.update(1000);
     expect(production.takeClipsProducedDuringLastUpdate()).toBe(10);
-    expect(state.clips).toBe(10);
+    expect(state.clips).toBe(10n);
     expect(production.takeClipsProducedDuringLastUpdate()).toBe(0);
   });
 
   it("achète du fil automatiquement si le stock est bas", () => {
     const { state, production } = makeProduction();
     state.autoWire = true;
-    state.wire = 100;
+    state.wire = 100n;
     state.funds = 50;
     state.wireCost = 20;
     production.update(100);
-    expect(state.wire).toBe(1100);
+    expect(state.wire).toBe(1100n);
     expect(state.funds).toBe(30);
   });
 
   it("offre une bobine d'urgence en cas de soft-lock", () => {
     const { state, production } = makeProduction();
-    state.wire = 0;
-    state.unsold = 0;
+    state.wire = 0n;
+    state.unsold = 0n;
     state.funds = 5;
     state.investmentFunds = 0;
     state.wireCost = 20;
     state.wirePerSpool = 1000;
     expect(production.grantEmergencyWireIfSoftLocked()).toBe(true);
-    expect(state.wire).toBe(1000);
+    expect(state.wire).toBe(1000n);
   });
 
   it("n'offre pas de fil d'urgence s'il reste des liquidités investies", () => {
     const { state, production } = makeProduction();
-    state.wire = 0;
-    state.unsold = 0;
+    state.wire = 0n;
+    state.unsold = 0n;
     state.funds = 0;
     state.investmentFunds = 50;
     state.wireCost = 20;
     expect(production.grantEmergencyWireIfSoftLocked()).toBe(false);
-    expect(state.wire).toBe(0);
+    expect(state.wire).toBe(0n);
   });
 
   it("arrête toute fabrication une fois la phase 1 terminée", () => {
     const { state, production } = makeProduction();
     state.phase1Complete = true;
     state.autoClippers = 50;
-    state.wire = 1000;
+    state.wire = 1000n;
 
     expect(production.produceClips(10)).toBe(0);
     expect(production.getAutomaticProductionRate()).toBe(0);
     production.update(1000);
     expect(production.takeClipsProducedDuringLastUpdate()).toBe(0);
-    expect(state.clips).toBe(0);
-    expect(state.wire).toBe(1000);
+    expect(state.clips).toBe(0n);
+    expect(state.wire).toBe(1000n);
   });
 });

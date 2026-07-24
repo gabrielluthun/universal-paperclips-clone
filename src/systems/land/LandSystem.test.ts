@@ -8,16 +8,16 @@ describe("LandSystem", () => {
     state.powerGridUnlocked = true;
     const land = new LandSystem(state);
 
-    expect(land.getNextSolarFarmCost()).toBe(10_000_000);
+    expect(land.getNextSolarFarmCost()).toBe(10_000_000n);
 
     state.solarFarms = 1;
-    expect(land.getNextSolarFarmCost()).toBeCloseTo(686_852_349.15, 0);
+    expect(Number(land.getNextSolarFarmCost())).toBeCloseTo(686_852_349.15, 0);
 
     state.solarFarms = 2;
-    expect(land.getNextSolarFarmCost()).toBeCloseTo(2_120_298_900.41, 0);
+    expect(Number(land.getNextSolarFarmCost())).toBeCloseTo(2_120_298_900.41, 0);
 
     state.solarFarms = 3;
-    expect(land.getNextSolarFarmCost()).toBeCloseTo(4_717_661_495.33, 0);
+    expect(Number(land.getNextSolarFarmCost())).toBeCloseTo(4_717_661_495.33, 0);
   });
 
   it("produit 50 MW par ferme solaire", () => {
@@ -32,23 +32,23 @@ describe("LandSystem", () => {
   it("achète une ferme en dépensant des trombones au coût courant", () => {
     const state = GameState.createInitial();
     state.powerGridUnlocked = true;
-    state.clips = 10_000_000;
+    state.clips = 10_000_000n;
     const land = new LandSystem(state);
 
     expect(land.purchaseSolarFarm()).toBe(true);
     expect(state.solarFarms).toBe(1);
-    expect(state.clips).toBe(0);
-    expect(land.getNextSolarFarmCost()).toBeCloseTo(686_852_349.15, 0);
+    expect(state.clips).toBe(0n);
+    expect(Number(land.getNextSolarFarmCost())).toBeCloseTo(686_852_349.15, 0);
   });
 
   it("refuse l'achat sans Power Grid ou sans trombones suffisants", () => {
     const state = GameState.createInitial();
     const land = new LandSystem(state);
-    state.clips = 10_000_000;
+    state.clips = 10_000_000n;
     expect(land.purchaseSolarFarm()).toBe(false);
 
     state.powerGridUnlocked = true;
-    state.clips = 9_999_999;
+    state.clips = 9_999_999n;
     expect(land.purchaseSolarFarm()).toBe(false);
   });
 
@@ -57,25 +57,25 @@ describe("LandSystem", () => {
     state.powerGridUnlocked = true;
     const land = new LandSystem(state);
 
-    expect(land.getNextBatteryCost()).toBe(1_000_000);
+    expect(land.getNextBatteryCost()).toBe(1_000_000n);
 
     state.batteries = 1;
-    expect(land.getNextBatteryCost()).toBeCloseTo(58_158_900.69, 0);
+    expect(Number(land.getNextBatteryCost())).toBeCloseTo(58_158_900.69, 0);
 
     state.batteries = 2;
-    expect(land.getNextBatteryCost()).toBeCloseTo(162_887_585.96, 0);
+    expect(Number(land.getNextBatteryCost())).toBeCloseTo(162_887_585.96, 0);
   });
 
   it("achète une Batterie et augmente la capacité de stockage (10 000 MW·s/unité)", () => {
     const state = GameState.createInitial();
     state.powerGridUnlocked = true;
-    state.clips = 1_000_000;
+    state.clips = 1_000_000n;
     const land = new LandSystem(state);
 
     expect(land.getBatteryCapacity()).toBe(0);
     expect(land.purchaseBattery()).toBe(true);
     expect(state.batteries).toBe(1);
-    expect(state.clips).toBe(0);
+    expect(state.clips).toBe(0n);
     expect(land.getBatteryCapacity()).toBe(10_000);
   });
 
@@ -94,8 +94,8 @@ describe("LandSystem", () => {
     expect(land.getPowerRatio()).toBe(1);
     // sliderPos par défaut = 0 → workFactor = (200-0)/100 = 2.
     const expectedHarvested = 10 * 26_180_337 * 2;
-    expect(state.acquiredMatter).toBeCloseTo(expectedHarvested, 0);
-    expect(state.availableMatter).toBeCloseTo(initialMatter - expectedHarvested, 0);
+    expect(state.acquiredMatter).toBe(BigInt(Math.round(expectedHarvested)));
+    expect(state.availableMatter).toBe(initialMatter - BigInt(Math.round(expectedHarvested)));
     // Surplus de puissance (50 - 10 MW) stocké dans les batteries.
     expect(state.storedPower).toBeCloseTo(40, 5);
     expect(state.powMod).toBe(1);
@@ -115,7 +115,7 @@ describe("LandSystem", () => {
 
     expect(state.powMod).toBeCloseTo(0.5, 5);
     const expectedHarvested = 100 * 26_180_337 * 2 * 0.5;
-    expect(state.acquiredMatter).toBeCloseTo(expectedHarvested, 0);
+    expect(state.acquiredMatter).toBe(BigInt(Math.round(expectedHarvested)));
     expect(state.storedPower).toBe(0);
   });
 
@@ -134,7 +134,7 @@ describe("LandSystem", () => {
     expect(state.powMod).toBe(1);
     expect(state.storedPower).toBeCloseTo(4990, 5);
     const expectedHarvested = 60 * 26_180_337 * 2; // pleine performance
-    expect(state.acquiredMatter).toBeCloseTo(expectedHarvested, 0);
+    expect(state.acquiredMatter).toBe(BigInt(Math.round(expectedHarvested)));
   });
 
   it("ralentit partiellement quand la batterie ne couvre qu'une partie du déficit", () => {
@@ -163,7 +163,7 @@ describe("LandSystem", () => {
 
     land.update(1000);
 
-    expect(state.acquiredMatter).toBe(0);
+    expect(state.acquiredMatter).toBe(0n);
   });
 
   it("calcule le coût des drones selon la formule UP (1M, 4.76M, 11.84M…)", () => {
@@ -172,31 +172,31 @@ describe("LandSystem", () => {
     state.wireDronesUnlocked = true;
     const land = new LandSystem(state);
 
-    expect(land.getNextHarvesterDroneCost()).toBe(1_000_000);
-    expect(land.getNextWireDroneCost()).toBe(1_000_000);
+    expect(land.getNextHarvesterDroneCost()).toBe(1_000_000n);
+    expect(land.getNextWireDroneCost()).toBe(1_000_000n);
 
     state.harvesterDrones = 1;
-    expect(land.getNextHarvesterDroneCost()).toBeCloseTo(4_756_828, 0);
+    expect(Number(land.getNextHarvesterDroneCost())).toBeCloseTo(4_756_828, 0);
 
     state.wireDrones = 2;
-    expect(land.getNextWireDroneCost()).toBeCloseTo(11_844_666, 0);
+    expect(Number(land.getNextWireDroneCost())).toBeCloseTo(11_844_666, 0);
   });
 
   it("achète un Drone récolteur ou fileur en dépensant des trombones", () => {
     const state = GameState.createInitial();
     state.harvesterDronesUnlocked = true;
-    state.clips = 1_000_000;
+    state.clips = 1_000_000n;
     const land = new LandSystem(state);
 
     expect(land.purchaseHarvesterDrone()).toBe(true);
     expect(state.harvesterDrones).toBe(1);
-    expect(state.clips).toBe(0);
+    expect(state.clips).toBe(0n);
 
     expect(land.purchaseWireDrone()).toBe(false); // pas débloqué
     state.wireDronesUnlocked = true;
-    state.clips = 999_999;
+    state.clips = 999_999n;
     expect(land.purchaseWireDrone()).toBe(false); // pas assez de trombones
-    state.clips = 1_000_000;
+    state.clips = 1_000_000n;
     expect(land.purchaseWireDrone()).toBe(true);
     expect(state.wireDrones).toBe(1);
   });
@@ -207,15 +207,17 @@ describe("LandSystem", () => {
     state.wireDronesUnlocked = true;
     state.solarFarms = 1; // 50 MW
     state.wireDrones = 5; // demande 5 MW < 50 MW dispo
-    state.acquiredMatter = 100_000_000_000; // large stock, non limitant
+    state.acquiredMatter = 100_000_000_000n; // large stock, non limitant
     const initialWire = state.wire;
     const land = new LandSystem(state);
 
     land.update(1000);
 
     const expectedConverted = 5 * 16_180_339 * 2;
-    expect(state.wire).toBeCloseTo(initialWire + expectedConverted, 0);
-    expect(state.acquiredMatter).toBeCloseTo(100_000_000_000 - expectedConverted, 0);
+    expect(state.wire).toBe(initialWire + BigInt(Math.round(expectedConverted)));
+    expect(state.acquiredMatter).toBe(
+      100_000_000_000n - BigInt(Math.round(expectedConverted)),
+    );
   });
 
   it("limite la conversion en fil à la matière acquise disponible", () => {
@@ -224,43 +226,43 @@ describe("LandSystem", () => {
     state.wireDronesUnlocked = true;
     state.solarFarms = 1;
     state.wireDrones = 5;
-    state.acquiredMatter = 10; // très peu de stock
+    state.acquiredMatter = 10n; // très peu de stock
     const initialWire = state.wire;
     const land = new LandSystem(state);
 
     land.update(1000);
 
-    expect(state.acquiredMatter).toBe(0);
-    expect(state.wire).toBeCloseTo(initialWire + 10, 5);
+    expect(state.acquiredMatter).toBe(0n);
+    expect(state.wire).toBe(initialWire + 10n);
   });
 
   it("calcule le coût des Usines selon la formule UP (multiplicateur décroissant puis plafonné)", () => {
     const state = GameState.createInitial();
     state.clipFactoriesUnlocked = true;
-    state.clips = 100_000_000;
+    state.clips = 100_000_000n;
     const land = new LandSystem(state);
 
-    expect(land.getNextClipFactoryCost()).toBe(100_000_000);
+    expect(land.getNextClipFactoryCost()).toBe(100_000_000n);
 
     // Achat n°1 (0 → 1 usine) : fcmod(1) = 11-1 = 10.
     expect(land.purchaseClipFactory()).toBe(true);
     expect(state.clipFactories).toBe(1);
-    expect(land.getNextClipFactoryCost()).toBeCloseTo(1_000_000_000, 0);
+    expect(Number(land.getNextClipFactoryCost())).toBeCloseTo(1_000_000_000, 0);
 
     // Achat n°2 (1 → 2 usines) : fcmod(2) = 11-2 = 9.
     state.clips = land.getNextClipFactoryCost();
     expect(land.purchaseClipFactory()).toBe(true);
-    expect(land.getNextClipFactoryCost()).toBeCloseTo(9_000_000_000, 0);
+    expect(Number(land.getNextClipFactoryCost())).toBeCloseTo(9_000_000_000, 0);
   });
 
   it("refuse l'achat d'une Usine sans déblocage ou sans trombones suffisants", () => {
     const state = GameState.createInitial();
     const land = new LandSystem(state);
-    state.clips = 100_000_000;
+    state.clips = 100_000_000n;
     expect(land.purchaseClipFactory()).toBe(false);
 
     state.clipFactoriesUnlocked = true;
-    state.clips = 99_999_999;
+    state.clips = 99_999_999n;
     expect(land.purchaseClipFactory()).toBe(false);
   });
 
@@ -270,15 +272,15 @@ describe("LandSystem", () => {
     state.clipFactoriesUnlocked = true;
     state.solarFarms = 5; // 250 MW
     state.clipFactories = 1; // 200 MW, suffisamment alimentée
-    state.wire = 10_000_000_000; // large stock, non limitant
+    state.wire = 10_000_000_000n; // large stock, non limitant
     const initialClips = state.clips;
     const land = new LandSystem(state);
 
     land.update(1000);
 
     const expectedProduced = 1 * 1_000_000_000; // powMod=1, factoryEfficiencyBonus=1
-    expect(state.clips).toBeCloseTo(initialClips + expectedProduced, 0);
-    expect(state.wire).toBeCloseTo(10_000_000_000 - expectedProduced, 0);
+    expect(state.clips).toBe(initialClips + BigInt(expectedProduced));
+    expect(state.wire).toBe(10_000_000_000n - BigInt(expectedProduced));
   });
 
   it("limite la production des Usines au fil disponible", () => {
@@ -287,14 +289,14 @@ describe("LandSystem", () => {
     state.clipFactoriesUnlocked = true;
     state.solarFarms = 5;
     state.clipFactories = 1;
-    state.wire = 10; // très peu de stock
+    state.wire = 10n; // très peu de stock
     const initialClips = state.clips;
     const land = new LandSystem(state);
 
     land.update(1000);
 
-    expect(state.wire).toBe(0);
-    expect(state.clips).toBeCloseTo(initialClips + 10, 5);
+    expect(state.wire).toBe(0n);
+    expect(state.clips).toBe(initialClips + 10n);
   });
 
   it("ne produit rien tant que les Usines ne sont pas débloquées", () => {
@@ -302,12 +304,12 @@ describe("LandSystem", () => {
     state.powerGridUnlocked = true;
     state.solarFarms = 5;
     state.clipFactories = 1;
-    state.wire = 1_000_000;
+    state.wire = 1_000_000n;
     const land = new LandSystem(state);
 
     land.update(1000);
 
-    expect(state.wire).toBe(1_000_000);
+    expect(state.wire).toBe(1_000_000n);
   });
 
   it("les Usines à trombones comptent aussi dans la demande de puissance (200 MW/usine)", () => {
@@ -365,7 +367,7 @@ describe("LandSystem", () => {
 
     it("l'essaim s'ennuie si plus aucune matière n'est disponible à récolter", () => {
       const state = setupSwarmState();
-      state.availableMatter = 0;
+      state.availableMatter = 0n;
       const land = new LandSystem(state);
 
       land.update(400_000); // 400 s → boredomLevel = min(30000, 100×400) = 30000
@@ -466,7 +468,7 @@ describe("LandSystem", () => {
       land.update(1000);
 
       const expected = 10 * 26_180_337 * 2 * 100;
-      expect(state.acquiredMatter).toBeCloseTo(expected, 0);
+      expect(state.acquiredMatter).toBe(BigInt(Math.round(expected)));
     });
 
     it("droneBoost>1 rend la récolte quadratique en nombre de drones (Cohésion adverse)", () => {
@@ -482,7 +484,7 @@ describe("LandSystem", () => {
 
       // dbsth = droneBoost × harvesterDrones = 10×10 = 100 → mtr = 10×100×rate×2(workFactor)
       const expected = 10 * (10 * 10) * 26_180_337 * 2;
-      expect(state.acquiredMatter).toBeCloseTo(expected, 0);
+      expect(state.acquiredMatter).toBe(BigInt(Math.round(expected)));
     });
 
     it("factoryEfficiencyBonus multiplie linéairement la production des Usines", () => {
@@ -491,7 +493,7 @@ describe("LandSystem", () => {
       state.clipFactoriesUnlocked = true;
       state.solarFarms = 5;
       state.clipFactories = 1;
-      state.wire = 1_000_000_000_000;
+      state.wire = 1_000_000_000_000n;
       state.factoryEfficiencyBonus = 100; // Usines améliorées acquises
       const initialClips = state.clips;
       const land = new LandSystem(state);
@@ -499,7 +501,7 @@ describe("LandSystem", () => {
       land.update(1000);
 
       const expected = 1 * 1_000_000_000 * 100;
-      expect(state.clips).toBeCloseTo(initialClips + expected, 0);
+      expect(state.clips).toBe(initialClips + BigInt(expected));
     });
 
     it("factoryBoost>1 rend la production quadratique en nombre d'usines (auto-correctrice)", () => {
@@ -508,7 +510,7 @@ describe("LandSystem", () => {
       state.clipFactoriesUnlocked = true;
       state.solarFarms = 12; // 600 MW = demande exacte de 3 usines
       state.clipFactories = 3;
-      state.wire = 1_000_000_000_000_000;
+      state.wire = 1_000_000_000_000_000n;
       state.factoryBoost = 1_000; // Chaîne auto-correctrice acquise
       const initialClips = state.clips;
       const land = new LandSystem(state);
@@ -517,7 +519,7 @@ describe("LandSystem", () => {
 
       // fbst = factoryBoost × clipFactories = 1000×3 = 3000 → 3×3000×rate
       const expected = 3 * (1_000 * 3) * 1_000_000_000;
-      expect(state.clips).toBeCloseTo(initialClips + expected, 0);
+      expect(state.clips).toBe(initialClips + BigInt(expected));
     });
   });
 

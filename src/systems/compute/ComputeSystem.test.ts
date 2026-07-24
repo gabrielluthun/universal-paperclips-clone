@@ -24,17 +24,17 @@ describe("ComputeSystem", () => {
     const state = GameState.createInitial();
     const compute = new ComputeSystem(state);
 
-    state.clips = 2999;
+    state.clips = 2999n;
     compute.grantTrustForProductionMilestones();
     expect(state.trust).toBe(2);
     expect(state.nextTrust).toBe(3000);
 
-    state.clips = 3000;
+    state.clips = 3000n;
     compute.grantTrustForProductionMilestones();
     expect(state.trust).toBe(3);
     expect(state.nextTrust).toBe(5000);
 
-    state.clips = 8000;
+    state.clips = 8000n;
     compute.grantTrustForProductionMilestones();
     expect(state.trust).toBe(5); // +1 à 5000, +1 à 8000
     expect(state.nextTrust).toBe(13_000);

@@ -50,20 +50,20 @@ describe("ProjectCost", () => {
 
   it("gère un coût en trombones invendus (unsold)", () => {
     const state = GameState.createInitial();
-    state.unsold = 1_000_000_000_000_000_000_000; // 1 sextillion
-    const cost = ProjectCost.of({ unsold: 1_000_000_000_000_000_000_000 });
+    state.unsold = 1_000_000_000_000_000_000_000n; // 1 sextillion
+    const cost = ProjectCost.of({ unsold: 10n ** 21n });
     expect(cost.canAfford(state)).toBe(true);
     cost.deductFrom(state);
-    expect(state.unsold).toBe(0);
+    expect(state.unsold).toBe(0n);
   });
 
   it("gère un coût en trombones fabriqués (clips)", () => {
     const state = GameState.createInitial();
-    state.clips = 100_000_000;
+    state.clips = 100_000_000n;
     const cost = ProjectCost.of({ clips: 100_000_000 });
     expect(cost.canAfford(state)).toBe(true);
     cost.deductFrom(state);
-    expect(state.clips).toBe(0);
+    expect(state.clips).toBe(0n);
   });
 
   it("gère un coût en énergie stockée (storedPower)", () => {
