@@ -111,6 +111,28 @@ describe("GameState", () => {
     ).toBeUndefined();
   });
 
+  it("migre une save v8 en renommant powerBanked → storedPower et en initialisant les batteries", () => {
+    const v8Save = {
+      version: 8,
+      phase: 2,
+      solarFarms: 3,
+      powerBanked: 4242,
+      powerGridUnlocked: true,
+    };
+
+    const restored = GameState.fromSavedData(v8Save);
+
+    expect(restored.version).toBe(SAVE_VERSION);
+    expect(restored.solarFarms).toBe(3);
+    expect(restored.storedPower).toBe(4242);
+    expect(restored.batteries).toBe(0);
+    expect(restored.powMod).toBe(0);
+    expect(restored.sliderPos).toBe(0);
+    expect(
+      (restored as unknown as { powerBanked?: number }).powerBanked,
+    ).toBeUndefined();
+  });
+
   it("rejette une sauvegarde sans version exploitable (donnée illisible)", () => {
     const restored = GameState.fromSavedData({ clips: 9999 });
     expect(restored.clips).toBe(0);
