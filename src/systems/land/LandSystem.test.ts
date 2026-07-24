@@ -234,6 +234,82 @@ describe("LandSystem", () => {
     expect(state.wire).toBeCloseTo(initialWire + 10, 5);
   });
 
+  it("calcule le coût des Usines selon la formule UP (multiplicateur décroissant puis plafonné)", () => {
+    const state = GameState.createInitial();
+    state.clipFactoriesUnlocked = true;
+    state.clips = 100_000_000;
+    const land = new LandSystem(state);
+
+    expect(land.getNextClipFactoryCost()).toBe(100_000_000);
+
+    // Achat n°1 (0 → 1 usine) : fcmod(1) = 11-1 = 10.
+    expect(land.purchaseClipFactory()).toBe(true);
+    expect(state.clipFactories).toBe(1);
+    expect(land.getNextClipFactoryCost()).toBeCloseTo(1_000_000_000, 0);
+
+    // Achat n°2 (1 → 2 usines) : fcmod(2) = 11-2 = 9.
+    state.clips = land.getNextClipFactoryCost();
+    expect(land.purchaseClipFactory()).toBe(true);
+    expect(land.getNextClipFactoryCost()).toBeCloseTo(9_000_000_000, 0);
+  });
+
+  it("refuse l'achat d'une Usine sans déblocage ou sans trombones suffisants", () => {
+    const state = GameState.createInitial();
+    const land = new LandSystem(state);
+    state.clips = 100_000_000;
+    expect(land.purchaseClipFactory()).toBe(false);
+
+    state.clipFactoriesUnlocked = true;
+    state.clips = 99_999_999;
+    expect(land.purchaseClipFactory()).toBe(false);
+  });
+
+  it("convertit le fil en trombones via les Usines (formule UP : factoryRate, sans facteur Travail/Réflexion)", () => {
+    const state = GameState.createInitial();
+    state.powerGridUnlocked = true;
+    state.clipFactoriesUnlocked = true;
+    state.solarFarms = 5; // 250 MW
+    state.clipFactories = 1; // 200 MW, suffisamment alimentée
+    state.wire = 10_000_000_000; // large stock, non limitant
+    const initialClips = state.clips;
+    const land = new LandSystem(state);
+
+    land.update(1000);
+
+    const expectedProduced = 1 * 1_000_000_000; // powMod=1, factoryEfficiencyBonus=1
+    expect(state.clips).toBeCloseTo(initialClips + expectedProduced, 0);
+    expect(state.wire).toBeCloseTo(10_000_000_000 - expectedProduced, 0);
+  });
+
+  it("limite la production des Usines au fil disponible", () => {
+    const state = GameState.createInitial();
+    state.powerGridUnlocked = true;
+    state.clipFactoriesUnlocked = true;
+    state.solarFarms = 5;
+    state.clipFactories = 1;
+    state.wire = 10; // très peu de stock
+    const initialClips = state.clips;
+    const land = new LandSystem(state);
+
+    land.update(1000);
+
+    expect(state.wire).toBe(0);
+    expect(state.clips).toBeCloseTo(initialClips + 10, 5);
+  });
+
+  it("ne produit rien tant que les Usines ne sont pas débloquées", () => {
+    const state = GameState.createInitial();
+    state.powerGridUnlocked = true;
+    state.solarFarms = 5;
+    state.clipFactories = 1;
+    state.wire = 1_000_000;
+    const land = new LandSystem(state);
+
+    land.update(1000);
+
+    expect(state.wire).toBe(1_000_000);
+  });
+
   it("les Usines à trombones comptent aussi dans la demande de puissance (200 MW/usine)", () => {
     const state = GameState.createInitial();
     state.powerGridUnlocked = true;
