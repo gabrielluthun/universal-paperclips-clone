@@ -129,6 +129,44 @@ describe("ProjectSystem", () => {
     expect(state.goodwillTokenCost).toBe(4_000_000);
   });
 
+  it("phase 2 : Tóth Tubule Enfolding puis Réseau électrique", () => {
+    const state = GameState.createInitial();
+    state.phase = 2;
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.ops = 100_000;
+    const projects = new ProjectSystem(state);
+
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "tothTubuleEnfolding",
+    );
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "powerGrid",
+    );
+
+    expect(projects.activateProject("tothTubuleEnfolding")).toBe(true);
+    expect(state.ops).toBe(55_000);
+    expect(state.landFoundationUnlocked).toBe(true);
+
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "powerGrid",
+    );
+    expect(projects.activateProject("powerGrid")).toBe(true);
+    expect(state.ops).toBe(15_000);
+    expect(state.powerGridUnlocked).toBe(true);
+  });
+
+  it("les projets phase 2 restent invisibles en phase 1", () => {
+    const state = GameState.createInitial();
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.ops = 100_000;
+    const projects = new ProjectSystem(state);
+
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "tothTubuleEnfolding",
+    );
+    expect(projects.activateProject("tothTubuleEnfolding")).toBe(false);
+  });
+
   it("projets CEV : gros gains de confiance hors Fibonacci", () => {
     const state = GameState.createInitial();
     state.clips = PROJECTS_UNLOCK_CLIPS;
