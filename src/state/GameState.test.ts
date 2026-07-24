@@ -22,7 +22,7 @@ describe("GameState", () => {
   it("crée un état initial cohérent", () => {
     const state = GameState.createInitial();
     expect(state.version).toBe(SAVE_VERSION);
-    expect(state.clips).toBe(0);
+    expect(state.clips).toBe(0n);
     expect(state.trust).toBe(2);
     expect(state.processors).toBe(1);
     expect(state.memory).toBe(1);
@@ -31,11 +31,11 @@ describe("GameState", () => {
 
   it("sérialise et restaure les projets terminés", () => {
     const state = GameState.createInitial();
-    state.clips = 42;
+    state.clips = 42n;
     state.markProjectCompleted("improvedWireExtrusion");
 
     const restored = GameState.fromSavedData(state.toSavedData());
-    expect(restored.clips).toBe(42);
+    expect(restored.clips).toBe(42n);
     expect(restored.hasCompletedProject("improvedWireExtrusion")).toBe(true);
   });
 
@@ -45,7 +45,7 @@ describe("GameState", () => {
       clips: 9999,
       trust: 7,
     });
-    expect(restored.clips).toBe(9999);
+    expect(restored.clips).toBe(9999n);
     expect(restored.trust).toBe(7);
     expect(restored.version).toBe(SAVE_VERSION);
   });
@@ -58,7 +58,7 @@ describe("GameState", () => {
       funds: 42,
     });
     expect(restored.phase).toBe(2);
-    expect(restored.clips).toBe(123_456_789);
+    expect(restored.clips).toBe(123_456_789n);
   });
 
   it("migre une save v6 (fin de phase 1) jusqu'à la version courante avec les champs de phase 2", () => {
@@ -77,7 +77,7 @@ describe("GameState", () => {
     // Progression existante intacte.
     expect(restored.phase).toBe(2);
     expect(restored.phase1Complete).toBe(true);
-    expect(restored.clips).toBe(500_000);
+    expect(restored.clips).toBe(500_000n);
     expect(restored.trust).toBe(42);
     expect(restored.funds).toBe(12_345);
     // Nouveaux champs phase 2 : valeurs par défaut neutres, rien de perdu.
@@ -86,8 +86,8 @@ describe("GameState", () => {
     expect(restored.wireDrones).toBe(0);
     expect(restored.clipFactories).toBe(0);
     expect(restored.phase2Complete).toBe(false);
-    expect(restored.availableMatter).toBe(Math.pow(10, 24) * 6000);
-    expect(restored.acquiredMatter).toBe(0);
+    expect(restored.availableMatter).toBe(6n * 10n ** 27n);
+    expect(restored.acquiredMatter).toBe(0n);
   });
 
   it("migre une save v7 en scindant matter → availableMatter / acquiredMatter", () => {
@@ -104,8 +104,8 @@ describe("GameState", () => {
     expect(restored.version).toBe(SAVE_VERSION);
     expect(restored.solarFarms).toBe(2);
     expect(restored.powerGridUnlocked).toBe(true);
-    expect(restored.availableMatter).toBe(Math.pow(10, 24) * 6000);
-    expect(restored.acquiredMatter).toBe(1234);
+    expect(restored.availableMatter).toBe(6n * 10n ** 27n);
+    expect(restored.acquiredMatter).toBe(1234n);
     expect(
       (restored as unknown as { matter?: number }).matter,
     ).toBeUndefined();
@@ -144,7 +144,7 @@ describe("GameState", () => {
 
     expect(restored.version).toBe(SAVE_VERSION);
     expect(restored.clipFactories).toBe(3);
-    expect(restored.clipFactoryCost).toBe(100_000_000);
+    expect(restored.clipFactoryCost).toBe(100_000_000n);
   });
 
   it("migre une save v10 en renommant swarmCompute → swarmGifts et en initialisant l'ennui/désorganisation", () => {
@@ -184,9 +184,38 @@ describe("GameState", () => {
     expect(restored.factoryBoost).toBe(1);
   });
 
+  it("migre une save v12 en convertissant clips/unsold/wire/matter/clipFactoryCost en bigint", () => {
+    const v12Save = {
+      version: 12,
+      phase: 2,
+      clips: 1e30,
+      unsold: 5e27,
+      wire: 1000,
+      availableMatter: 6e27,
+      acquiredMatter: 42,
+      clipFactoryCost: 100_000_000,
+    };
+
+    const restored = GameState.fromSavedData(v12Save);
+
+    expect(restored.version).toBe(SAVE_VERSION);
+    expect(typeof restored.clips).toBe("bigint");
+    // 1e30 en number n'est pas exact ; on vérifie surtout le round-trip string.
+    const resaved = restored.toSavedData() as Record<string, unknown>;
+    expect(typeof resaved.clips).toBe("string");
+    expect(restored.wire).toBe(1000n);
+    expect(restored.acquiredMatter).toBe(42n);
+    expect(restored.clipFactoryCost).toBe(100_000_000n);
+
+    // Précision : débit exact à l'échelle 10^30.
+    restored.clips = 10n ** 30n;
+    restored.clips -= 10n ** 13n;
+    expect(restored.clips).toBe(10n ** 30n - 10n ** 13n);
+  });
+
   it("rejette une sauvegarde sans version exploitable (donnée illisible)", () => {
     const restored = GameState.fromSavedData({ clips: 9999 });
-    expect(restored.clips).toBe(0);
+    expect(restored.clips).toBe(0n);
   });
 
   it("accepte l'ancienne clé completedProjects", () => {

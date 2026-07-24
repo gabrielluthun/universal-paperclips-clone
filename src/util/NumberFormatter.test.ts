@@ -53,19 +53,43 @@ describe("NumberFormatter", () => {
 
   it("formatCompact abrège en échelle longue française à partir du milliard", () => {
     expect(NumberFormatter.formatCompact(1_500_000_000)).toBe(
-      "1,50\u00A0milliard",
+      "1,5\u00A0milliard",
     );
     expect(NumberFormatter.formatCompact(2_500_000_000)).toBe(
-      "2,50\u00A0milliards",
+      "2,5\u00A0milliards",
     );
     expect(NumberFormatter.formatCompact(1_000_000_000_000)).toBe(
-      "1,00\u00A0billion",
+      "1\u00A0billion",
     );
   });
 
   it("formatCompact reconnaît les quatrilliards (matière disponible de phase 2)", () => {
     expect(NumberFormatter.formatCompact(6 * Math.pow(10, 27))).toBe(
-      "6,00\u00A0quatrilliards",
+      "6\u00A0quatrilliards",
     );
+    expect(NumberFormatter.formatCompact(6n * 10n ** 27n)).toBe(
+      "6\u00A0quatrilliards",
+    );
+  });
+
+  it("lisse un bigint dans la plage safe (ex. 1 milliard)", () => {
+    NumberFormatter.beginFrame(0);
+    expect(NumberFormatter.formatInteger(1_000_000_000n)).toBe(
+      "1\u202f000\u202f000\u202f000",
+    );
+
+    NumberFormatter.beginFrame(100);
+    const smoothed = NumberFormatter.formatInteger(1_000_000_100n);
+    const parsed = Number(smoothed.replace(/\u202f/g, ""));
+    expect(parsed).toBeGreaterThan(1_000_000_000);
+    expect(parsed).toBeLessThan(1_000_000_100);
+  });
+
+  it("formatInteger sur bigint hors plage safe reste exact", () => {
+    const value = 5n * 10n ** 21n - 12345n;
+    NumberFormatter.beginFrame(0);
+    const formatted = NumberFormatter.formatInteger(value);
+    expect(formatted).toBe(NumberFormatter.formatIntegerExact(value));
+    expect(formatted.replace(/\u202f/g, "")).toBe(value.toString());
   });
 });

@@ -24,17 +24,17 @@ describe("ComputeSystem", () => {
     const state = GameState.createInitial();
     const compute = new ComputeSystem(state);
 
-    state.clips = 2999;
+    state.clips = 2999n;
     compute.grantTrustForProductionMilestones();
     expect(state.trust).toBe(2);
     expect(state.nextTrust).toBe(3000);
 
-    state.clips = 3000;
+    state.clips = 3000n;
     compute.grantTrustForProductionMilestones();
     expect(state.trust).toBe(3);
     expect(state.nextTrust).toBe(5000);
 
-    state.clips = 8000;
+    state.clips = 8000n;
     compute.grantTrustForProductionMilestones();
     expect(state.trust).toBe(5); // +1 à 5000, +1 à 8000
     expect(state.nextTrust).toBe(13_000);
@@ -53,6 +53,26 @@ describe("ComputeSystem", () => {
     state.trust = 4;
     expect(compute.allocateMemory()).toBe(true);
     expect(state.memory).toBe(2);
+  });
+
+  it("avec essaim débloqué, alloue via cadeaux et ignore la confiance", () => {
+    const state = GameState.createInitial();
+    state.swarmComputingUnlocked = true;
+    state.swarmGifts = 0;
+    state.trust = 100;
+    const compute = new ComputeSystem(state);
+
+    expect(compute.allocateProcessor()).toBe(false);
+    expect(state.processors).toBe(1);
+
+    state.swarmGifts = 2;
+    expect(compute.allocateProcessor()).toBe(true);
+    expect(state.processors).toBe(2);
+    expect(state.swarmGifts).toBe(1);
+    expect(compute.allocateMemory()).toBe(true);
+    expect(state.memory).toBe(2);
+    expect(state.swarmGifts).toBe(0);
+    expect(compute.allocateMemory()).toBe(false);
   });
 
   it("calcule les ops/s à 10 × processeurs", () => {

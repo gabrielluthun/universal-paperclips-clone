@@ -14,16 +14,21 @@ import type { QuantumFields } from "./fields/quantumFields";
 import { createQuantumFields } from "./fields/quantumFields";
 import type { StrategicFields } from "./fields/strategicFields";
 import { createStrategicFields } from "./fields/strategicFields";
-import { applyMigrations, SAVE_MIGRATIONS } from "./saveMigrations";
+import {
+  applyMigrations,
+  decodeBigAmountFields,
+  encodeBigAmountFields,
+  SAVE_MIGRATIONS,
+} from "./saveMigrations";
 
 /**
- * 
+ *
  * Version de la sauvegarde. S'incrémente lorsque des modifications sont
  * apportées à la structure de l'état. Chaque bump DOIT être accompagné d'une
  * entrée dans `SAVE_MIGRATIONS` (voir `saveMigrations.ts`) pour que les
  * sauvegardes existantes conservent leur progression au lieu d'être perdues.
  */
-export const SAVE_VERSION = 12;
+export const SAVE_VERSION = 13;
 
 /**
  * Fusion de déclarations : les champs de chaque domaine (`src/state/fields/`)
@@ -81,10 +86,12 @@ export class GameState {
       return state;
     }
 
-    const migrated = applyMigrations(
-      raw as Record<string, unknown>,
-      SAVE_MIGRATIONS,
-      SAVE_VERSION,
+    const migrated = decodeBigAmountFields(
+      applyMigrations(
+        raw as Record<string, unknown>,
+        SAVE_MIGRATIONS,
+        SAVE_VERSION,
+      ),
     ) as Partial<GameState> & {
       version?: number;
       completedProjects?: string[];
@@ -113,11 +120,12 @@ export class GameState {
   }
 
   toSavedData(): object {
-    return {
+    const raw = {
       ...this,
       completedProjects: [...this.completedProjectIds],
       completedProjectIds: [...this.completedProjectIds],
     };
+    return encodeBigAmountFields(raw as Record<string, unknown>);
   }
 
   hasCompletedProject(id: string): boolean {
@@ -136,7 +144,9 @@ export class GameState {
    */
   adoptSavedData(raw: unknown): void {
     const loaded = GameState.fromSavedData(raw);
-    const data = loaded.toSavedData() as Record<string, unknown>;
+    const data = decodeBigAmountFields(
+      loaded.toSavedData() as Record<string, unknown>,
+    );
     const {
       completedProjects: _legacy,
       completedProjectIds: savedIds,

@@ -3,6 +3,14 @@ import { requireElement } from "../dom";
 import type { RenderModel } from "../RenderModel";
 
 export class ComputePanel {
+  private readonly trustRow = requireElement<HTMLElement>("trust-row");
+  private readonly nextTrustRow = requireElement<HTMLElement>("next-trust-row");
+  private readonly swarmGiftsRow = requireElement<HTMLElement>(
+    "compute-swarm-gifts-row",
+  );
+  private readonly swarmGifts = requireElement<HTMLSpanElement>(
+    "compute-swarm-gifts",
+  );
   private readonly trust = requireElement<HTMLSpanElement>("trust");
   private readonly trustUnused =
     requireElement<HTMLSpanElement>("trust-unused");
@@ -21,12 +29,20 @@ export class ComputePanel {
 
   render(model: RenderModel): void {
     const { state, compute } = model;
+    const swarmMode = state.swarmComputingUnlocked;
     const availableTrust = compute.getAvailableTrustPoints();
+
+    this.trustRow.hidden = swarmMode;
+    this.nextTrustRow.hidden = swarmMode;
+    this.swarmGiftsRow.hidden = !swarmMode;
 
     this.trust.textContent = NumberFormatter.formatInteger(state.trust);
     this.trustUnused.textContent =
       NumberFormatter.formatInteger(availableTrust);
     this.nextTrust.textContent = NumberFormatter.formatInteger(state.nextTrust);
+    this.swarmGifts.textContent = NumberFormatter.formatInteger(
+      state.swarmGifts,
+    );
     this.processors.textContent = NumberFormatter.formatInteger(
       state.processors,
     );
@@ -40,7 +56,14 @@ export class ComputePanel {
     );
     this.creativityRow.hidden = !state.creativityUnlocked;
 
-    this.btnAddProcessor.disabled = availableTrust < 1;
-    this.btnAddMemory.disabled = availableTrust < 1;
+    const canAllocate = swarmMode
+      ? state.swarmGifts >= 1
+      : availableTrust >= 1;
+    this.btnAddProcessor.disabled = !canAllocate;
+    this.btnAddMemory.disabled = !canAllocate;
+    this.btnAddProcessor.title = swarmMode
+      ? "Dépenser 1 cadeau de calcul"
+      : "Allouer 1 confiance";
+    this.btnAddMemory.title = this.btnAddProcessor.title;
   }
 }

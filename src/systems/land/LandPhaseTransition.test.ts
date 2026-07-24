@@ -17,7 +17,7 @@ describe("Phase 2 : parcours complet jusqu'à la transition phase 3", () => {
     const land = new LandSystem(state);
 
     // --- Fondations ---
-    state.clips = 20_000_000;
+    state.clips = 20_000_000n;
     state.ops = 45_000;
     expect(projects.activateProject("tothTubuleEnfolding")).toBe(true);
     expect(state.landFoundationUnlocked).toBe(true);
@@ -42,30 +42,41 @@ describe("Phase 2 : parcours complet jusqu'à la transition phase 3", () => {
 
     // --- Usines ---
     state.ops = 35_000;
-    state.clips = 100_000_000;
+    state.clips = 100_000_000n;
     expect(projects.activateProject("clipFactories")).toBe(true);
     expect(state.clipFactoriesUnlocked).toBe(true);
 
     // La simulation Terre produit effectivement de la matière au fil du temps.
     state.harvesterDrones = 5;
     land.update(1000);
-    expect(state.acquiredMatter).toBeGreaterThan(0);
+    expect(state.acquiredMatter).toBeGreaterThan(0n);
 
     // --- Fin de phase 2 : Exploration spatiale ---
-    state.availableMatter = 0;
+    state.availableMatter = 0n;
     state.clips = PROJECTS_UNLOCK_CLIPS; // plateau de projets toujours déverrouillé
     state.ops = 120_000;
     state.storedPower = 10_000_000;
-    state.unsold = Math.pow(10, 27) * 5;
+    state.unsold = 5n * 10n ** 27n;
     expect(state.phase).toBe(2);
 
     expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
       "spaceExploration",
     );
+    state.solarFarms = 8;
+    state.harvesterDrones = 20;
+    state.wireDrones = 30;
+    state.clipFactories = 4;
+    state.swarmGifts = 3;
+
     expect(projects.activateProject("spaceExploration")).toBe(true);
 
     expect(state.phase).toBe(3);
     expect(state.phase2Complete).toBe(true);
     expect(state.phase2EndAcknowledged).toBe(false);
+    expect(state.solarFarms).toBe(0);
+    expect(state.harvesterDrones).toBe(0);
+    expect(state.wireDrones).toBe(0);
+    expect(state.clipFactories).toBe(0);
+    expect(state.swarmGifts).toBe(3);
   });
 });

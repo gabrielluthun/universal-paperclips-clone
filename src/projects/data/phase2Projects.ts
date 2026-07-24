@@ -148,7 +148,7 @@ export function createPhase2Projects(): Project[] {
       "selfCorrectingSupplyChain",
       "Chaîne d'approvisionnement auto-correctrice",
       "Chaque usine ajoutée au réseau multiplie par 1 000 la production de chacune des autres.",
-      ProjectCost.of({ unsold: 1_000_000_000_000_000_000_000 }), // 1 sextillion
+      ProjectCost.of({ unsold: 10n ** 21n }), // 1 sextillion
       (s) => s.clipFactories >= 50,
       (s) => {
         s.factoryBoost = 1_000;
@@ -161,13 +161,33 @@ export function createPhase2Projects(): Project[] {
       ProjectCost.of({
         ops: 120_000,
         storedPower: 10_000_000,
-        unsold: Math.pow(10, 27) * 5, // 5 octillions
+        unsold: 5n * 10n ** 27n, // 5 octillions
       }),
       // UP exige aussi humanFlag == 0 (Confiance rendue obsolète par « Release
       // the HypnoDrones »), transition non modélisée dans cette phase 2 : la
       // matière terrestre épuisée reste la condition de gameplay principale.
-      (s) => s.availableMatter <= 0,
+      (s) => s.availableMatter <= 0n,
       (s) => {
+        // Démantèle l'infrastructure terrestre (fermes, batteries, drones,
+        // usines, stocks matière/fil) tout en conservant cadeaux / calcul.
+        s.solarFarms = 0;
+        s.batteries = 0;
+        s.storedPower = 0;
+        s.power = 0;
+        s.harvesterDrones = 0;
+        s.wireDrones = 0;
+        s.clipFactories = 0;
+        s.clipFactoryCost = 100_000_000n;
+        s.acquiredMatter = 0n;
+        s.wire = 0n;
+        s.powMod = 0;
+        s.sliderPos = 0;
+        s.boredomLevel = 0;
+        s.boredomActive = false;
+        s.disorgCounter = 0;
+        s.disorgActive = false;
+        s.giftBits = 0;
+
         s.phase2Complete = true;
         s.phase2EndAcknowledged = false;
         s.phase = 3;

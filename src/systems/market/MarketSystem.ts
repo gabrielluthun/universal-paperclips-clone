@@ -59,17 +59,19 @@ export class MarketSystem extends GameSystem {
    */
   private sellFromInventory(deltaMs: number): number {
     const s = this.state;
-    if (s.unsold <= 0) return 0;
+    if (s.unsold <= 0n) return 0;
     const demand = this.getPublicDemand();
     const attempts = Math.max(1, Math.round(deltaMs / 100));
     let revenue = 0;
     for (let i = 0; i < attempts; i++) {
-      if (s.unsold <= 0) break;
+      if (s.unsold <= 0n) break;
       if (Math.random() >= demand / 100) continue;
-      const wanted = Math.max(1, Math.floor(0.7 * Math.pow(demand, 1.15)));
-      const sold = Math.min(wanted, s.unsold);
+      const wanted = BigInt(
+        Math.max(1, Math.floor(0.7 * Math.pow(demand, 1.15))),
+      );
+      const sold = wanted < s.unsold ? wanted : s.unsold;
       s.unsold -= sold;
-      revenue += sold * s.price;
+      revenue += Number(sold) * s.price;
     }
     s.funds += revenue;
     return revenue;

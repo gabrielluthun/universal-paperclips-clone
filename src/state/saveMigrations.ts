@@ -1,3 +1,9 @@
+import {
+  baFromJSON,
+  BIG_AMOUNT_SAVE_KEYS,
+  decodeBigAmountFields,
+  encodeBigAmountFields,
+} from "../util/BigAmount";
 import { createLandFields } from "./fields/landFields";
 
 /** Transforme une sauvegarde brute d'une version vers la suivante. */
@@ -39,6 +45,10 @@ export type SaveMigration = (
  *
  * v11 → v12 : ajoute `droneBoost` et `factoryBoost` (Cohésion adverse /
  * Chaîne d'approvisionnement auto-correctrice), à 1 par défaut (inactifs).
+ *
+ * v12 → v13 : stocks / coûts astronomiques (`clips`, `unsold`, `wire`,
+ * `availableMatter`, `acquiredMatter`, `clipFactoryCost`) passent en
+ * bigint (sérialisés string) pour la précision phase 2.
  */
 export const SAVE_MIGRATIONS: Record<number, SaveMigration> = {
   6: (data) => ({
@@ -47,12 +57,11 @@ export const SAVE_MIGRATIONS: Record<number, SaveMigration> = {
     version: 7,
   }),
   7: (data) => {
-    const legacyMatter =
-      typeof data.matter === "number" ? data.matter : 0;
+    const legacyMatter = baFromJSON(data.matter ?? 0);
     const { matter: _removed, ...rest } = data;
     return {
       ...rest,
-      availableMatter: Math.pow(10, 24) * 6000,
+      availableMatter: 6n * 10n ** 27n,
       // L'ancien `matter` représentait le stock récolté (toujours 0 en pratique).
       acquiredMatter: legacyMatter,
       version: 8,
@@ -73,7 +82,7 @@ export const SAVE_MIGRATIONS: Record<number, SaveMigration> = {
   },
   9: (data) => ({
     ...data,
-    clipFactoryCost: 100_000_000,
+    clipFactoryCost: 100_000_000n,
     version: 10,
   }),
   10: (data) => {
@@ -98,6 +107,15 @@ export const SAVE_MIGRATIONS: Record<number, SaveMigration> = {
     factoryBoost: 1,
     version: 12,
   }),
+  12: (data) => {
+    const converted: Record<string, unknown> = { ...data, version: 13 };
+    for (const key of BIG_AMOUNT_SAVE_KEYS) {
+      if (key in converted) {
+        converted[key] = baFromJSON(converted[key]);
+      }
+    }
+    return converted;
+  },
 };
 
 /**
@@ -126,3 +144,5 @@ export function applyMigrations(
 
   return data;
 }
+
+export { decodeBigAmountFields, encodeBigAmountFields };

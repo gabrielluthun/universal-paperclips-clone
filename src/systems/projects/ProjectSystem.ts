@@ -4,7 +4,7 @@ import { createPhase1Projects } from "../../projects/data/phase1Projects";
 import { createPhase2Projects } from "../../projects/data/phase2Projects";
 
 /** Seuil de trombones avant d'ouvrir le panneau Projets. */
-export const PROJECTS_UNLOCK_CLIPS = 2000;
+export const PROJECTS_UNLOCK_CLIPS = 2000n;
 
 export class ProjectSystem {
   private readonly phase1Catalog: Project[];

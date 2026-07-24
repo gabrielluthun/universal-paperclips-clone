@@ -1,4 +1,6 @@
 import type { GameState } from "../state/GameState";
+import { ba } from "../util/BigAmount";
+import { NumberFormatter } from "../util/NumberFormatter";
 
 export class ProjectCost {
   constructor(
@@ -10,11 +12,11 @@ export class ProjectCost {
     /** Si false, la confiance est un prérequis affiché mais n'est pas débitée. */
     readonly spendTrust: boolean = true,
     /** Trombones invendus (unusedClips dans UP) — ex. Chaîne d'approvisionnement auto-correctrice. */
-    readonly unsold?: number,
+    readonly unsold?: bigint,
     /** Énergie stockée en batterie (MW·s) — ex. Exploration spatiale. */
     readonly storedPower?: number,
     /** Trombones fabriqués, y compris vendus (ex. Usines à trombones : 100M clips). */
-    readonly clips?: number,
+    readonly clips?: bigint,
   ) {}
 
   static of(partial: {
@@ -24,9 +26,9 @@ export class ProjectCost {
     funds?: number;
     yomi?: number;
     spendTrust?: boolean;
-    unsold?: number;
+    unsold?: number | bigint;
     storedPower?: number;
-    clips?: number;
+    clips?: number | bigint;
   }): ProjectCost {
     return new ProjectCost(
       partial.ops,
@@ -35,9 +37,9 @@ export class ProjectCost {
       partial.funds,
       partial.yomi,
       partial.spendTrust ?? true,
-      partial.unsold,
+      partial.unsold === undefined ? undefined : ba(partial.unsold),
       partial.storedPower,
-      partial.clips,
+      partial.clips === undefined ? undefined : ba(partial.clips),
     );
   }
 
@@ -96,7 +98,9 @@ export class ProjectCost {
       parts.push(`${this.yomi.toLocaleString("fr-FR")} yomi`);
     }
     if (this.unsold !== undefined) {
-      parts.push(`${this.unsold.toLocaleString("fr-FR")} trombones invendus`);
+      parts.push(
+        `${NumberFormatter.formatIntegerExact(this.unsold)} trombones invendus`,
+      );
     }
     if (this.storedPower !== undefined) {
       parts.push(
@@ -104,7 +108,9 @@ export class ProjectCost {
       );
     }
     if (this.clips !== undefined) {
-      parts.push(`${this.clips.toLocaleString("fr-FR")} trombones`);
+      parts.push(
+        `${NumberFormatter.formatIntegerExact(this.clips)} trombones`,
+      );
     }
     return parts.join(" · ");
   }

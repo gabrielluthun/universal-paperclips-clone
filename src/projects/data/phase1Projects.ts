@@ -57,7 +57,7 @@ export function createPhase1Projects(): Project[] {
       "Extrusion de fil améliorée",
       "Taille d'une bobine : ×1,5.",
       ProjectCost.of({ ops: 750 }),
-      (s) => s.clips >= 2000,
+      (s) => s.clips >= 2000n,
       (s) => {
         s.wirePerSpool = Math.floor(s.wirePerSpool * 1.5);
       },
@@ -331,7 +331,7 @@ export function createPhase1Projects(): Project[] {
       "Un jeton de goodwill…",
       "Un petit cadeau aux superviseurs. (+1 confiance)",
       ProjectCost.of({ funds: 500_000 }),
-      (s) => s.trust >= 85 && s.clips >= 101_000_000,
+      (s) => s.trust >= 85 && s.clips >= 101_000_000n,
       (s) => {
         s.trust += 1;
       },

@@ -5,7 +5,7 @@ import { PROJECTS_UNLOCK_CLIPS, ProjectSystem } from "./ProjectSystem";
 describe("ProjectSystem", () => {
   it("garde le plateau verrouillé en début de partie", () => {
     const state = GameState.createInitial();
-    state.clips = 100;
+    state.clips = 100n;
     const projects = new ProjectSystem(state);
     expect(projects.isProjectsBoardUnlocked()).toBe(false);
     expect(projects.getAvailableProjects()).toHaveLength(0);
@@ -22,7 +22,7 @@ describe("ProjectSystem", () => {
 
   it("débloque aussi le plateau dès le premier gain de confiance", () => {
     const state = GameState.createInitial();
-    state.clips = 100;
+    state.clips = 100n;
     state.trust = 3;
     const projects = new ProjectSystem(state);
     expect(projects.isProjectsBoardUnlocked()).toBe(true);
@@ -106,7 +106,7 @@ describe("ProjectSystem", () => {
   it("jetons de goodwill répétables jusqu'à 100 de confiance", () => {
     const state = GameState.createInitial();
     state.trust = 85;
-    state.clips = 101_000_000;
+    state.clips = 101_000_000n;
     state.funds = 2_000_000;
     const projects = new ProjectSystem(state);
 
@@ -216,7 +216,7 @@ describe("ProjectSystem", () => {
   it("phase 2 : Usines à trombones débloquées après drones récolteurs + fileurs", () => {
     const state = GameState.createInitial();
     state.phase = 2;
-    state.clips = 100_000_000 + PROJECTS_UNLOCK_CLIPS;
+    state.clips = 100_000_000n + PROJECTS_UNLOCK_CLIPS;
     state.ops = 35_000;
     state.markProjectCompleted("tothTubuleEnfolding");
     state.markProjectCompleted("powerGrid");
@@ -308,7 +308,7 @@ describe("ProjectSystem", () => {
     state.phase = 2;
     state.clips = PROJECTS_UNLOCK_CLIPS;
     state.ops = 100_000;
-    state.unsold = 1_000_000_000_000_000_000_000;
+    state.unsold = 1_000_000_000_000_000_000_000n;
     state.clipFactories = 9;
     const projects = new ProjectSystem(state);
 
@@ -327,7 +327,7 @@ describe("ProjectSystem", () => {
     state.clipFactories = 50;
     expect(projects.activateProject("selfCorrectingSupplyChain")).toBe(true);
     expect(state.factoryBoost).toBe(1_000);
-    expect(state.unsold).toBe(0);
+    expect(state.unsold).toBe(0n);
   });
 
   it("phase 2 : Élan débloqué à partir de 50 Fermes solaires", () => {
@@ -357,25 +357,41 @@ describe("ProjectSystem", () => {
     state.clips = PROJECTS_UNLOCK_CLIPS;
     state.ops = 120_000;
     state.storedPower = 10_000_000;
-    state.unsold = Math.pow(10, 27) * 5;
-    state.availableMatter = 1; // pas encore épuisée
+    state.unsold = 5n * 10n ** 27n;
+    state.availableMatter = 1n; // pas encore épuisée
     const projects = new ProjectSystem(state);
 
     expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
       "spaceExploration",
     );
 
-    state.availableMatter = 0;
+    state.availableMatter = 0n;
+    state.solarFarms = 12;
+    state.batteries = 3;
+    state.harvesterDrones = 40;
+    state.wireDrones = 60;
+    state.clipFactories = 5;
+    state.acquiredMatter = 1_000n;
+    state.wire = 2_000n;
+    state.swarmGifts = 7;
     expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
       "spaceExploration",
     );
     expect(projects.activateProject("spaceExploration")).toBe(true);
     expect(state.ops).toBe(0);
     expect(state.storedPower).toBe(0);
-    expect(state.unsold).toBe(0);
+    expect(state.unsold).toBe(0n);
     expect(state.phase).toBe(3);
     expect(state.phase2Complete).toBe(true);
     expect(state.phase2EndAcknowledged).toBe(false);
+    expect(state.solarFarms).toBe(0);
+    expect(state.batteries).toBe(0);
+    expect(state.harvesterDrones).toBe(0);
+    expect(state.wireDrones).toBe(0);
+    expect(state.clipFactories).toBe(0);
+    expect(state.acquiredMatter).toBe(0n);
+    expect(state.wire).toBe(0n);
+    expect(state.swarmGifts).toBe(7);
   });
 
   it("les projets phase 2 restent invisibles en phase 1", () => {
