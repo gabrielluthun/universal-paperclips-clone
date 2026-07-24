@@ -91,33 +91,32 @@ export class LandPanel {
   render(model: RenderModel): void {
     const { state, land } = model;
 
+    // Toujours formater toutes les sections (même masquées) pour garder
+    // un ordre de slots de lissage stable au fil des déblocages.
     this.energyPanel.hidden = !state.powerGridUnlocked;
-    if (state.powerGridUnlocked) {
-      this.solarFarms.textContent = NumberFormatter.formatInteger(
-        state.solarFarms,
-      );
-      this.powerOutput.textContent = `${NumberFormatter.formatInteger(state.power)}\u00A0MW`;
+    this.solarFarms.textContent = NumberFormatter.formatInteger(
+      state.solarFarms,
+    );
+    this.powerOutput.textContent = `${NumberFormatter.formatInteger(state.power)}\u00A0MW`;
+    const farmCost = land.getNextSolarFarmCost();
+    this.solarFarmCost.textContent = NumberFormatter.formatInteger(farmCost);
+    this.btnBuySolarFarm.disabled =
+      !state.powerGridUnlocked || state.clips < farmCost;
 
-      const farmCost = land.getNextSolarFarmCost();
-      this.solarFarmCost.textContent = NumberFormatter.formatInteger(farmCost);
-      this.btnBuySolarFarm.disabled = state.clips < farmCost;
+    this.batteries.textContent = NumberFormatter.formatInteger(state.batteries);
+    this.storedPower.textContent = `${NumberFormatter.formatInteger(
+      state.storedPower,
+    )}\u00A0/\u00A0${NumberFormatter.formatInteger(
+      land.getBatteryCapacity(),
+    )}\u00A0MW·s`;
+    const batteryCost = land.getNextBatteryCost();
+    this.batteryCost.textContent = NumberFormatter.formatInteger(batteryCost);
+    this.btnBuyBattery.disabled =
+      !state.powerGridUnlocked || state.clips < batteryCost;
 
-      this.batteries.textContent = NumberFormatter.formatInteger(
-        state.batteries,
-      );
-      this.storedPower.textContent = `${NumberFormatter.formatCompact(
-        state.storedPower,
-      )}\u00A0/\u00A0${NumberFormatter.formatCompact(
-        land.getBatteryCapacity(),
-      )}\u00A0MW·s`;
-      const batteryCost = land.getNextBatteryCost();
-      this.batteryCost.textContent = NumberFormatter.formatInteger(batteryCost);
-      this.btnBuyBattery.disabled = state.clips < batteryCost;
-    }
-
-    const showDrones = state.harvesterDronesUnlocked || state.wireDronesUnlocked;
+    const showDrones =
+      state.harvesterDronesUnlocked || state.wireDronesUnlocked;
     this.dronesPanel.hidden = !showDrones;
-    if (!showDrones) return;
 
     this.dronePowerRatio.textContent = `${NumberFormatter.formatInteger(
       land.getPowerRatio() * 100,
@@ -143,19 +142,16 @@ export class LandPanel {
       !state.wireDronesUnlocked || state.clips < wireCost;
 
     this.factoriesPanel.hidden = !state.clipFactoriesUnlocked;
-    if (!state.clipFactoriesUnlocked) return;
-
     this.clipFactories.textContent = NumberFormatter.formatInteger(
       state.clipFactories,
     );
     const factoryCost = land.getNextClipFactoryCost();
     this.clipFactoryCost.textContent =
       NumberFormatter.formatInteger(factoryCost);
-    this.btnBuyClipFactory.disabled = state.clips < factoryCost;
+    this.btnBuyClipFactory.disabled =
+      !state.clipFactoriesUnlocked || state.clips < factoryCost;
 
     this.swarmPanel.hidden = !state.swarmComputingUnlocked;
-    if (!state.swarmComputingUnlocked) return;
-
     this.swarmSize.textContent = NumberFormatter.formatInteger(
       land.getSwarmSize(),
     );
@@ -167,15 +163,19 @@ export class LandPanel {
     }
     this.swarmSliderValue.textContent = `${NumberFormatter.formatInteger(state.sliderPos)}\u00A0%`;
 
-    this.boredomWarning.hidden = !state.boredomActive;
-    this.btnEntertainSwarm.hidden = !state.boredomActive;
+    this.boredomWarning.hidden =
+      !state.swarmComputingUnlocked || !state.boredomActive;
+    this.btnEntertainSwarm.hidden =
+      !state.swarmComputingUnlocked || !state.boredomActive;
     const entertainCost = land.getEntertainSwarmCost();
     this.entertainSwarmCost.textContent =
       NumberFormatter.formatInteger(entertainCost);
     this.btnEntertainSwarm.disabled = state.creativity < entertainCost;
 
-    this.disorgWarning.hidden = !state.disorgActive;
-    this.btnSynchSwarm.hidden = !state.disorgActive;
+    this.disorgWarning.hidden =
+      !state.swarmComputingUnlocked || !state.disorgActive;
+    this.btnSynchSwarm.hidden =
+      !state.swarmComputingUnlocked || !state.disorgActive;
     const synchCost = land.getSynchSwarmCost();
     this.synchSwarmCost.textContent = NumberFormatter.formatInteger(synchCost);
     this.btnSynchSwarm.disabled = state.yomi < synchCost;

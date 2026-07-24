@@ -80,7 +80,7 @@ export class BusinessPanel {
     this.megaClipperBlock.hidden = !state.megaClippersUnlocked;
 
     this.btnMake.disabled =
-      state.wire < 1 || model.production.isProductionHalted();
+      state.wire < 1n || model.production.isProductionHalted();
     this.btnBuyWire.disabled = state.funds < state.wireCost;
     this.btnPriceDown.disabled = state.price <= MarketSystem.PRICE_MIN;
     this.btnMarketing.disabled =
