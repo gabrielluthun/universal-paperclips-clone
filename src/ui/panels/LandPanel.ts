@@ -46,6 +46,18 @@ export class LandPanel {
     "btn-buy-wire-drone",
   );
 
+  private readonly factoriesPanel = requireElement<HTMLElement>(
+    "panel-land-factories",
+  );
+  private readonly clipFactories =
+    requireElement<HTMLSpanElement>("clip-factories");
+  private readonly clipFactoryCost = requireElement<HTMLSpanElement>(
+    "clip-factory-cost",
+  );
+  private readonly btnBuyClipFactory = requireElement<HTMLButtonElement>(
+    "btn-buy-clip-factory",
+  );
+
   render(model: RenderModel): void {
     const { state, land } = model;
 
@@ -99,5 +111,16 @@ export class LandPanel {
     this.wireDroneCost.textContent = NumberFormatter.formatInteger(wireCost);
     this.btnBuyWireDrone.disabled =
       !state.wireDronesUnlocked || state.clips < wireCost;
+
+    this.factoriesPanel.hidden = !state.clipFactoriesUnlocked;
+    if (!state.clipFactoriesUnlocked) return;
+
+    this.clipFactories.textContent = NumberFormatter.formatInteger(
+      state.clipFactories,
+    );
+    const factoryCost = land.getNextClipFactoryCost();
+    this.clipFactoryCost.textContent =
+      NumberFormatter.formatInteger(factoryCost);
+    this.btnBuyClipFactory.disabled = state.clips < factoryCost;
   }
 }

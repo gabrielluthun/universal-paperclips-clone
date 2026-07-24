@@ -12,5 +12,6 @@ export class LandController {
       this.land.purchaseHarvesterDrone(),
     );
     bindClick("btn-buy-wire-drone", () => this.land.purchaseWireDrone());
+    bindClick("btn-buy-clip-factory", () => this.land.purchaseClipFactory());
   }
 }
