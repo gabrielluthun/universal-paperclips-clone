@@ -83,6 +83,18 @@ describe("StrategicModelingSystem", () => {
     expect(state.yomi).toBe(gained);
   });
 
+  it("refuse un tournoi dès la phase 2, même bien approvisionné", () => {
+    const state = GameState.createInitial();
+    state.strategicModelingUnlocked = true;
+    state.ops = 5000;
+    state.phase = 2;
+    const strategic = new StrategicModelingSystem(state);
+
+    expect(strategic.canRunTournament()).toBe(false);
+    expect(strategic.runTournament()).toBe(0);
+    expect(state.ops).toBe(5000);
+  });
+
   it("ajoute une stratégie et augmente le coût", () => {
     const state = GameState.createInitial();
     state.strategicModelingUnlocked = true;

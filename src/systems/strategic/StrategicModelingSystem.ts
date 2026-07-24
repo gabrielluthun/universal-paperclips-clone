@@ -60,9 +60,11 @@ export class StrategicModelingSystem extends GameSystem {
     return true;
   }
 
+  /** Les tournois ne se lancent plus une fois la phase 1 close. */
   canRunTournament(): boolean {
     const s = this.state;
     return (
+      s.phase === 1 &&
       s.strategicModelingUnlocked &&
       s.unlockedStrategyIds.length > 0 &&
       s.ops >= s.tourneyCost
