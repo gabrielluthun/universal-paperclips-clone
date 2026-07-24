@@ -475,13 +475,13 @@ describe("LandSystem", () => {
       state.harvesterDronesUnlocked = true;
       state.solarFarms = 1; // 50 MW
       state.harvesterDrones = 10;
-      state.droneBoost = 2; // Cohésion adverse acquise
+      state.droneBoost = 10; // Cohésion adverse acquise (×10 par drone dans UP)
       const land = new LandSystem(state);
 
       land.update(1000);
 
-      // dbsth = droneBoost × harvesterDrones = 2×10 = 20 → mtr = 10×20×rate×2(workFactor)
-      const expected = 10 * (2 * 10) * 26_180_337 * 2;
+      // dbsth = droneBoost × harvesterDrones = 10×10 = 100 → mtr = 10×100×rate×2(workFactor)
+      const expected = 10 * (10 * 10) * 26_180_337 * 2;
       expect(state.acquiredMatter).toBeCloseTo(expected, 0);
     });
 

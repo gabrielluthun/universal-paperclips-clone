@@ -57,6 +57,15 @@ describe("ProjectCost", () => {
     expect(state.unsold).toBe(0);
   });
 
+  it("gère un coût en trombones fabriqués (clips)", () => {
+    const state = GameState.createInitial();
+    state.clips = 100_000_000;
+    const cost = ProjectCost.of({ clips: 100_000_000 });
+    expect(cost.canAfford(state)).toBe(true);
+    cost.deductFrom(state);
+    expect(state.clips).toBe(0);
+  });
+
   it("gère un coût en énergie stockée (storedPower)", () => {
     const state = GameState.createInitial();
     state.storedPower = 10_000_000;

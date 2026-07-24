@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { GameState } from "../../state/GameState";
-import { ProjectSystem } from "../projects/ProjectSystem";
+import { PROJECTS_UNLOCK_CLIPS, ProjectSystem } from "../projects/ProjectSystem";
 import { LandSystem } from "./LandSystem";
 
 /**
@@ -42,6 +42,7 @@ describe("Phase 2 : parcours complet jusqu'à la transition phase 3", () => {
 
     // --- Usines ---
     state.ops = 35_000;
+    state.clips = 100_000_000;
     expect(projects.activateProject("clipFactories")).toBe(true);
     expect(state.clipFactoriesUnlocked).toBe(true);
 
@@ -52,6 +53,7 @@ describe("Phase 2 : parcours complet jusqu'à la transition phase 3", () => {
 
     // --- Fin de phase 2 : Exploration spatiale ---
     state.availableMatter = 0;
+    state.clips = PROJECTS_UNLOCK_CLIPS; // plateau de projets toujours déverrouillé
     state.ops = 120_000;
     state.storedPower = 10_000_000;
     state.unsold = Math.pow(10, 27) * 5;

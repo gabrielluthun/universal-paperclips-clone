@@ -216,7 +216,7 @@ describe("ProjectSystem", () => {
   it("phase 2 : Usines à trombones débloquées après drones récolteurs + fileurs", () => {
     const state = GameState.createInitial();
     state.phase = 2;
-    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.clips = 100_000_000 + PROJECTS_UNLOCK_CLIPS;
     state.ops = 35_000;
     state.markProjectCompleted("tothTubuleEnfolding");
     state.markProjectCompleted("powerGrid");
@@ -234,6 +234,7 @@ describe("ProjectSystem", () => {
     );
     expect(projects.activateProject("clipFactories")).toBe(true);
     expect(state.ops).toBe(0);
+    expect(state.clips).toBe(PROJECTS_UNLOCK_CLIPS);
     expect(state.clipFactoriesUnlocked).toBe(true);
   });
 
@@ -241,7 +242,7 @@ describe("ProjectSystem", () => {
     const state = GameState.createInitial();
     state.phase = 2;
     state.clips = PROJECTS_UNLOCK_CLIPS;
-    state.yomi = 12_000;
+    state.yomi = 36_000;
     state.harvesterDrones = 100;
     state.wireDrones = 99;
     const projects = new ProjectSystem(state);
@@ -265,7 +266,7 @@ describe("ProjectSystem", () => {
     state.phase = 2;
     state.clips = PROJECTS_UNLOCK_CLIPS;
     state.ops = 100_000;
-    state.yomi = 12_000;
+    state.yomi = 50_000;
     state.harvesterDrones = 250;
     state.wireDrones = 249; // 499 : pas encore assez pour anti-collision
     const projects = new ProjectSystem(state);
@@ -299,7 +300,7 @@ describe("ProjectSystem", () => {
     expect(projects.activateProject("droneFlockingAdversarialCohesion")).toBe(
       true,
     );
-    expect(state.droneBoost).toBe(2);
+    expect(state.droneBoost).toBe(10);
   });
 
   it("phase 2 : Usines améliorées/hypervéloces/auto-correctrice débloquées par seuil d'usines", () => {
@@ -333,7 +334,7 @@ describe("ProjectSystem", () => {
     const state = GameState.createInitial();
     state.phase = 2;
     state.clips = PROJECTS_UNLOCK_CLIPS;
-    state.creativity = 30_000;
+    state.creativity = 20_000;
     state.solarFarms = 49;
     const projects = new ProjectSystem(state);
 

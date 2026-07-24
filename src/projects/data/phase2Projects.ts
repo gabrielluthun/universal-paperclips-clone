@@ -68,7 +68,7 @@ export function createPhase2Projects(): Project[] {
       "clipFactories",
       "Usines à trombones",
       "Installations de production de trombones à grande échelle, elles-mêmes construites en trombones. Débloque leur achat.",
-      ProjectCost.of({ ops: 35_000 }),
+      ProjectCost.of({ ops: 35_000, clips: 100_000_000 }),
       (s) => done(s, "harvesterDrones") && done(s, "wireDrones"),
       (s) => {
         s.clipFactoriesUnlocked = true;
@@ -78,7 +78,7 @@ export function createPhase2Projects(): Project[] {
       "swarmComputing",
       "Informatique en essaim",
       "Exploite la flotte de drones pour augmenter la capacité de calcul. Débloque le curseur Travail/Réflexion.",
-      ProjectCost.of({ yomi: 12_000 }),
+      ProjectCost.of({ yomi: 36_000 }),
       (s) => s.harvesterDrones + s.wireDrones >= 200,
       (s) => {
         s.swarmComputingUnlocked = true;
@@ -107,11 +107,11 @@ export function createPhase2Projects(): Project[] {
     new ConfigurableProject(
       "droneFlockingAdversarialCohesion",
       "Vol en essaim : cohésion adverse",
-      "Chaque drone ajouté à l'essaim double la production de chacun des autres.",
-      ProjectCost.of({ yomi: 12_000 }),
+      "Chaque drone ajouté à l'essaim multiplie par 10 la production de chacun des autres.",
+      ProjectCost.of({ yomi: 50_000 }),
       (s) => s.harvesterDrones + s.wireDrones >= 50_000,
       (s) => {
-        s.droneBoost = 2;
+        s.droneBoost = 10;
       },
     ),
     new ConfigurableProject(
@@ -138,7 +138,7 @@ export function createPhase2Projects(): Project[] {
       "momentum",
       "Élan",
       "Drones et Usines gagnent continuellement en vitesse tant qu'ils sont alimentés à pleine puissance.",
-      ProjectCost.of({ creativity: 30_000 }),
+      ProjectCost.of({ creativity: 20_000 }),
       (s) => s.solarFarms >= 50,
       (s) => {
         s.momentumUnlocked = true;

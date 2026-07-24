@@ -50,10 +50,10 @@ export interface LandFields {
    */
   droneEfficiencyBonus: number;
   /**
-   * Cohésion adverse (Adversarial Cohesion) : passe de 1 à 2 une fois le
+   * Cohésion adverse (Adversarial Cohesion) : passe de 1 à 10 une fois le
    * projet acquis. Change la formule de récolte/filage, qui devient
-   * quadratique en nombre de drones (chaque drone ajouté double la
-   * production de chacun) au lieu de linéaire — droneBoost dans UP.
+   * quadratique en nombre de drones (chaque drone ajouté multiplie par 10
+   * la production de chacun) au lieu de linéaire — droneBoost dans UP.
    */
   droneBoost: number;
 

@@ -13,6 +13,8 @@ export class ProjectCost {
     readonly unsold?: number,
     /** Énergie stockée en batterie (MW·s) — ex. Exploration spatiale. */
     readonly storedPower?: number,
+    /** Trombones fabriqués, y compris vendus (ex. Usines à trombones : 100M clips). */
+    readonly clips?: number,
   ) {}
 
   static of(partial: {
@@ -24,6 +26,7 @@ export class ProjectCost {
     spendTrust?: boolean;
     unsold?: number;
     storedPower?: number;
+    clips?: number;
   }): ProjectCost {
     return new ProjectCost(
       partial.ops,
@@ -34,6 +37,7 @@ export class ProjectCost {
       partial.spendTrust ?? true,
       partial.unsold,
       partial.storedPower,
+      partial.clips,
     );
   }
 
@@ -52,6 +56,7 @@ export class ProjectCost {
     ) {
       return false;
     }
+    if (this.clips !== undefined && state.clips < this.clips) return false;
     return true;
   }
 
@@ -64,6 +69,7 @@ export class ProjectCost {
     if (this.yomi !== undefined) state.yomi -= this.yomi;
     if (this.unsold !== undefined) state.unsold -= this.unsold;
     if (this.storedPower !== undefined) state.storedPower -= this.storedPower;
+    if (this.clips !== undefined) state.clips -= this.clips;
   }
 
   /** Texte du coût pour l'interface (ex. « 750 ops · 50 créat. »). */
@@ -96,6 +102,9 @@ export class ProjectCost {
       parts.push(
         `${this.storedPower.toLocaleString("fr-FR")} MW·s stockés`,
       );
+    }
+    if (this.clips !== undefined) {
+      parts.push(`${this.clips.toLocaleString("fr-FR")} trombones`);
     }
     return parts.join(" · ");
   }
