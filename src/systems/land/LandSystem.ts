@@ -16,6 +16,14 @@ const POWER_PER_SOLAR_FARM = 50;
 const POWER_PER_DRONE = 1;
 /** Matière récoltée par Drone récolteur à pleine puissance (g/s), valeur « de base » UP. */
 const MATTER_PER_HARVESTER_DRONE = 5_235_700_000;
+/** Fil produit par Drone fileur à pleine puissance (pouces/s), valeur « de base » UP. */
+const WIRE_PER_WIRE_DRONE = 3_235_700_000;
+/**
+ * Coût des drones (récolteurs et fileurs, même formule côté wiki) :
+ * 1M, 4.76M, 11.84M… = 1_000_000 × n^2.25, n = nombre de drones après achat.
+ */
+const DRONE_COST_BASE = 1_000_000;
+const DRONE_COST_EXPONENT = 2.25;
 
 /**
  * Système de simulation de la phase 2 (Terre) : grid électrique, drones,
@@ -44,6 +52,40 @@ export class LandSystem extends GameSystem {
     if (s.clips < cost) return false;
     s.clips -= cost;
     s.solarFarms += 1;
+    return true;
+  }
+
+  /** Coût (en trombones) du prochain Drone récolteur. */
+  getNextHarvesterDroneCost(): number {
+    return Math.round(
+      Math.pow(this.state.harvesterDrones + 1, DRONE_COST_EXPONENT) * DRONE_COST_BASE,
+    );
+  }
+
+  purchaseHarvesterDrone(): boolean {
+    const s = this.state;
+    if (!s.harvesterDronesUnlocked) return false;
+    const cost = this.getNextHarvesterDroneCost();
+    if (s.clips < cost) return false;
+    s.clips -= cost;
+    s.harvesterDrones += 1;
+    return true;
+  }
+
+  /** Coût (en trombones) du prochain Drone fileur. */
+  getNextWireDroneCost(): number {
+    return Math.round(
+      Math.pow(this.state.wireDrones + 1, DRONE_COST_EXPONENT) * DRONE_COST_BASE,
+    );
+  }
+
+  purchaseWireDrone(): boolean {
+    const s = this.state;
+    if (!s.wireDronesUnlocked) return false;
+    const cost = this.getNextWireDroneCost();
+    if (s.clips < cost) return false;
+    s.clips -= cost;
+    s.wireDrones += 1;
     return true;
   }
 
@@ -88,6 +130,16 @@ export class LandSystem extends GameSystem {
       const harvested = Math.min(harvestRate * dt, s.availableMatter);
       s.availableMatter -= harvested;
       s.acquiredMatter += harvested;
+    }
+
+    if (s.wireDronesUnlocked) {
+      // Hypothèse (non documentée telle quelle par le wiki) : 1 g de matière
+      // acquise produit 1 pouce de fil, la matière acquise est donc bien la
+      // ressource limitante de cette conversion.
+      const wireRate = s.wireDrones * WIRE_PER_WIRE_DRONE * s.droneEfficiencyBonus * powerRatio;
+      const converted = Math.min(wireRate * dt, s.acquiredMatter);
+      s.acquiredMatter -= converted;
+      s.wire += converted;
     }
   }
 }
