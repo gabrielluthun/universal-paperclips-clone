@@ -1,6 +1,11 @@
+import type { GameState } from "../../state/GameState";
 import type { Project } from "../Project";
 import { ConfigurableProject } from "../ConfigurableProject";
 import { ProjectCost } from "../ProjectCost";
+
+function done(state: GameState, id: string): boolean {
+  return state.hasCompletedProject(id);
+}
 
 /**
  * Projets de phase 2 (Terre). Rempli incrémentalement au fil des étapes du
@@ -17,6 +22,16 @@ export function createPhase2Projects(): Project[] {
       (s) => s.phase === 2,
       (s) => {
         s.landFoundationUnlocked = true;
+      },
+    ),
+    new ConfigurableProject(
+      "powerGrid",
+      "Réseau électrique",
+      "Fermes solaires pour produire de l'électricité. Nécessaire pour alimenter drones et usines.",
+      ProjectCost.of({ ops: 40_000 }),
+      (s) => done(s, "tothTubuleEnfolding"),
+      (s) => {
+        s.powerGridUnlocked = true;
       },
     ),
   ];
