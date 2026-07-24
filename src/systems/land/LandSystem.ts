@@ -36,6 +36,16 @@ const BATTERY_COST_EXPONENT = 2.54;
 const BATTERY_COST_FACTOR = 10_000_000;
 /** Trombones produits par Usine à pleine puissance (clips/s) — factoryRate. */
 const CLIPS_PER_FACTORY = 1_000_000_000;
+/** Seuil d'accumulation (giftBits) avant l'octroi d'un cadeau de calcul — giftPeriod. */
+const GIFT_PERIOD = 125_000;
+/** Seuil d'ennui (boredomLevel) qui bloque les cadeaux tant que non résolu. */
+const BOREDOM_THRESHOLD = 30_000;
+/** Seuil de désorganisation (disorgCounter) qui bloque les cadeaux tant que non résolu. */
+const DISORG_THRESHOLD = 100;
+/** Coût (en Yomi) de « Synchroniser le swarm », fixe dans UP (synchCost). */
+const SYNCH_SWARM_COST = 5_000;
+/** Incrément du coût de « Distraire le swarm » à chaque usage (créativité). */
+const ENTERTAIN_SWARM_COST_INCREMENT = 10_000;
 
 /**
  * Multiplicateur appliqué au coût de l'Usine à chaque achat (fcmod dans UP).
@@ -154,6 +164,92 @@ export class LandSystem extends GameSystem {
     return true;
   }
 
+  /** Taille de l'essaim (nombre total de drones), base de la génération de cadeaux. */
+  getSwarmSize(): number {
+    return Math.floor(this.state.harvesterDrones + this.state.wireDrones);
+  }
+
+  /** Positionne le curseur Travail (0) ⟷ Réflexion (100), révélé par Informatique en essaim. */
+  setSliderPos(value: number): void {
+    if (!this.state.swarmComputingUnlocked) return;
+    this.state.sliderPos = Math.min(100, Math.max(0, Math.round(value)));
+  }
+
+  /** Coût (en Yomi) de « Synchroniser le swarm » (résout la désorganisation). */
+  getSynchSwarmCost(): number {
+    return SYNCH_SWARM_COST;
+  }
+
+  synchronizeSwarm(): boolean {
+    const s = this.state;
+    if (!s.swarmComputingUnlocked) return false;
+    if (s.yomi < SYNCH_SWARM_COST) return false;
+    s.yomi -= SYNCH_SWARM_COST;
+    s.disorgActive = false;
+    s.disorgCounter = 0;
+    return true;
+  }
+
+  /** Coût (en créativité) de « Distraire le swarm » (résout l'ennui), augmente à chaque usage. */
+  getEntertainSwarmCost(): number {
+    return this.state.entertainSwarmCost;
+  }
+
+  entertainSwarm(): boolean {
+    const s = this.state;
+    if (!s.swarmComputingUnlocked) return false;
+    if (s.creativity < s.entertainSwarmCost) return false;
+    s.creativity -= s.entertainSwarmCost;
+    s.entertainSwarmCost += ENTERTAIN_SWARM_COST_INCREMENT;
+    s.boredomActive = false;
+    s.boredomLevel = 0;
+    return true;
+  }
+
+  /**
+   * Mécanique du swarm (fidèle à UP, converti en taux continus par seconde
+   * depuis les incréments par tick de 10 ms de l'original) : ennui,
+   * désorganisation, et génération de cadeaux de calcul.
+   */
+  private updateSwarm(dt: number): void {
+    const s = this.state;
+    const d = this.getSwarmSize();
+
+    if (s.availableMatter <= 0 && d >= 1) {
+      s.boredomLevel = Math.min(BOREDOM_THRESHOLD, s.boredomLevel + 100 * dt);
+    } else if (s.boredomLevel > 0) {
+      s.boredomLevel = Math.max(0, s.boredomLevel - 100 * dt);
+    }
+    if (s.boredomLevel >= BOREDOM_THRESHOLD) {
+      s.boredomActive = true;
+    }
+
+    const droneRatio =
+      Math.max(s.harvesterDrones + 1, s.wireDrones + 1) /
+      Math.min(s.harvesterDrones + 1, s.wireDrones + 1);
+    if (droneRatio > 1.5) {
+      s.disorgCounter += Math.min(droneRatio / 100, 1) * dt;
+    } else if (s.disorgCounter > 1) {
+      s.disorgCounter = Math.max(0, s.disorgCounter - 1 * dt);
+    }
+    if (s.disorgCounter >= DISORG_THRESHOLD) {
+      s.disorgActive = true;
+    }
+
+    // Pas de cadeau tant que le swarm est ennuyé, désorganisé, à l'arrêt
+    // (panne de courant) ou trop petit (statuts UP « Lonely »/« NO RESPONSE »).
+    if (s.boredomActive || s.disorgActive || s.powMod <= 0 || d < 2) return;
+
+    const giftRate = Math.log(d) * s.sliderPos; // giftBits par seconde
+    s.giftBits += giftRate * dt;
+
+    while (s.giftBits >= GIFT_PERIOD) {
+      const gift = Math.max(1, Math.round(Math.log10(d) * (s.sliderPos / 100)));
+      s.swarmGifts += gift;
+      s.giftBits -= GIFT_PERIOD;
+    }
+  }
+
   /** Puissance électrique instantanée générée par les Fermes solaires (MW). */
   getPowerOutput(): number {
     return this.state.solarFarms * POWER_PER_SOLAR_FARM;
@@ -258,6 +354,10 @@ export class LandSystem extends GameSystem {
       s.wire -= produced;
       s.clips += produced;
       s.unsold += produced;
+    }
+
+    if (s.swarmComputingUnlocked) {
+      this.updateSwarm(dt);
     }
   }
 }
