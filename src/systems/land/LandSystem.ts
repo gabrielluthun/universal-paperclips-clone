@@ -41,6 +41,8 @@ const BATTERY_COST_EXPONENT = 2.54;
 const BATTERY_COST_FACTOR = 10_000_000;
 /** Trombones produits par Usine à pleine puissance (clips/s) — factoryRate. */
 const CLIPS_PER_FACTORY = 1_000_000_000;
+/** Coût de la première usine (persisté ensuite via multiplicateurs). */
+const INITIAL_CLIP_FACTORY_COST = 100_000_000n;
 /** Seuil d'accumulation (giftBits) avant l'octroi d'un cadeau de calcul — giftPeriod. */
 const GIFT_PERIOD = 125_000;
 /** Seuil d'ennui (boredomLevel) qui bloque les cadeaux tant que non résolu. */
@@ -57,6 +59,13 @@ const ENTERTAIN_SWARM_COST_INCREMENT = 10_000;
  * Non plafonné : powMod peut dépasser 1 indéfiniment.
  */
 const MOMENTUM_GAIN_PER_SECOND = 0.01;
+
+export type SwarmStatus =
+  | "lonely"
+  | "noPower"
+  | "bored"
+  | "disorganized"
+  | "active";
 
 /**
  * Multiplicateur appliqué au coût de l'Usine à chaque achat (fcmod dans UP).
@@ -75,8 +84,7 @@ function getFactoryCostMultiplier(newLevel: number): number {
 
 /**
  * Système de simulation de la phase 2 (Terre) : grid électrique, drones,
- * usines à trombones, informatique en essaim. Rempli incrémentalement au
- * fil des étapes du plan phase 2.
+ * usines à trombones, informatique en essaim.
  */
 export class LandSystem extends GameSystem {
   /** Accumulateurs fractionnaires pour les débits float → bigint. */
@@ -93,36 +101,91 @@ export class LandSystem extends GameSystem {
    * Formule UP : 10M à 0 ferme, puis Math.pow(solarFarms+1, 2.78)*1e8.
    */
   getNextSolarFarmCost(): bigint {
-    const owned = this.state.solarFarms;
+    return this.solarFarmCostForOwned(this.state.solarFarms);
+  }
+
+  private solarFarmCostForOwned(owned: number): bigint {
     if (owned === 0) return INITIAL_SOLAR_FARM_COST;
     return baFromPow(owned + 1, SOLAR_FARM_COST_EXPONENT, SOLAR_FARM_COST_FACTOR);
   }
 
-  purchaseSolarFarm(): boolean {
-    const s = this.state;
-    if (!s.powerGridUnlocked) return false;
-    const cost = this.getNextSolarFarmCost();
-    if (s.clips < cost) return false;
-    s.clips -= cost;
-    s.solarFarms += 1;
-    return true;
+  /** Coût remboursé en désassemblant une ferme quand `owned` fermes sont détenues. */
+  private solarFarmRefundForOwned(owned: number): bigint {
+    if (owned <= 0) return 0n;
+    return this.solarFarmCostForOwned(owned - 1);
+  }
+
+  /**
+   * Achète jusqu'à `qty` fermes (arrêt si fonds insuffisants).
+   * @returns true si au moins une unité a été achetée.
+   */
+  purchaseSolarFarm(qty = 1): boolean {
+    return this.buyMany(qty, () => {
+      const s = this.state;
+      if (!s.powerGridUnlocked) return false;
+      const cost = this.getNextSolarFarmCost();
+      if (s.clips < cost) return false;
+      s.clips -= cost;
+      s.solarFarms += 1;
+      return true;
+    });
+  }
+
+  disassembleSolarFarm(qty = 1): boolean {
+    return this.sellMany(qty, () => {
+      const s = this.state;
+      if (s.solarFarms < 1) return false;
+      s.clips += this.solarFarmRefundForOwned(s.solarFarms);
+      s.solarFarms -= 1;
+      return true;
+    });
+  }
+
+  disassembleAllSolarFarms(): boolean {
+    return this.disassembleSolarFarm(this.state.solarFarms);
   }
 
   /** Coût (en trombones) de la prochaine Batterie. Formule UP : (n+1)^2.54 × 1e7. */
   getNextBatteryCost(): bigint {
-    const owned = this.state.batteries;
+    return this.batteryCostForOwned(this.state.batteries);
+  }
+
+  private batteryCostForOwned(owned: number): bigint {
     if (owned === 0) return INITIAL_BATTERY_COST;
     return baFromPow(owned + 1, BATTERY_COST_EXPONENT, BATTERY_COST_FACTOR);
   }
 
-  purchaseBattery(): boolean {
-    const s = this.state;
-    if (!s.powerGridUnlocked) return false;
-    const cost = this.getNextBatteryCost();
-    if (s.clips < cost) return false;
-    s.clips -= cost;
-    s.batteries += 1;
-    return true;
+  private batteryRefundForOwned(owned: number): bigint {
+    if (owned <= 0) return 0n;
+    return this.batteryCostForOwned(owned - 1);
+  }
+
+  purchaseBattery(qty = 1): boolean {
+    return this.buyMany(qty, () => {
+      const s = this.state;
+      if (!s.powerGridUnlocked) return false;
+      const cost = this.getNextBatteryCost();
+      if (s.clips < cost) return false;
+      s.clips -= cost;
+      s.batteries += 1;
+      return true;
+    });
+  }
+
+  disassembleBattery(qty = 1): boolean {
+    return this.sellMany(qty, () => {
+      const s = this.state;
+      if (s.batteries < 1) return false;
+      s.clips += this.batteryRefundForOwned(s.batteries);
+      s.batteries -= 1;
+      const capacity = this.getBatteryCapacity();
+      if (s.storedPower > capacity) s.storedPower = capacity;
+      return true;
+    });
+  }
+
+  disassembleAllBatteries(): boolean {
+    return this.disassembleBattery(this.state.batteries);
   }
 
   /** Capacité totale de stockage des batteries (MW·s). */
@@ -139,14 +202,35 @@ export class LandSystem extends GameSystem {
     );
   }
 
-  purchaseHarvesterDrone(): boolean {
-    const s = this.state;
-    if (!s.harvesterDronesUnlocked) return false;
-    const cost = this.getNextHarvesterDroneCost();
-    if (s.clips < cost) return false;
-    s.clips -= cost;
-    s.harvesterDrones += 1;
-    return true;
+  private harvesterRefundForOwned(owned: number): bigint {
+    if (owned <= 0) return 0n;
+    return baFromPow(owned, DRONE_COST_EXPONENT, DRONE_COST_BASE);
+  }
+
+  purchaseHarvesterDrone(qty = 1): boolean {
+    return this.buyMany(qty, () => {
+      const s = this.state;
+      if (!s.harvesterDronesUnlocked) return false;
+      const cost = this.getNextHarvesterDroneCost();
+      if (s.clips < cost) return false;
+      s.clips -= cost;
+      s.harvesterDrones += 1;
+      return true;
+    });
+  }
+
+  disassembleHarvesterDrone(qty = 1): boolean {
+    return this.sellMany(qty, () => {
+      const s = this.state;
+      if (s.harvesterDrones < 1) return false;
+      s.clips += this.harvesterRefundForOwned(s.harvesterDrones);
+      s.harvesterDrones -= 1;
+      return true;
+    });
+  }
+
+  disassembleAllHarvesterDrones(): boolean {
+    return this.disassembleHarvesterDrone(this.state.harvesterDrones);
   }
 
   /** Coût (en trombones) du prochain Drone fileur. */
@@ -158,14 +242,35 @@ export class LandSystem extends GameSystem {
     );
   }
 
-  purchaseWireDrone(): boolean {
-    const s = this.state;
-    if (!s.wireDronesUnlocked) return false;
-    const cost = this.getNextWireDroneCost();
-    if (s.clips < cost) return false;
-    s.clips -= cost;
-    s.wireDrones += 1;
-    return true;
+  private wireDroneRefundForOwned(owned: number): bigint {
+    if (owned <= 0) return 0n;
+    return baFromPow(owned, DRONE_COST_EXPONENT, DRONE_COST_BASE);
+  }
+
+  purchaseWireDrone(qty = 1): boolean {
+    return this.buyMany(qty, () => {
+      const s = this.state;
+      if (!s.wireDronesUnlocked) return false;
+      const cost = this.getNextWireDroneCost();
+      if (s.clips < cost) return false;
+      s.clips -= cost;
+      s.wireDrones += 1;
+      return true;
+    });
+  }
+
+  disassembleWireDrone(qty = 1): boolean {
+    return this.sellMany(qty, () => {
+      const s = this.state;
+      if (s.wireDrones < 1) return false;
+      s.clips += this.wireDroneRefundForOwned(s.wireDrones);
+      s.wireDrones -= 1;
+      return true;
+    });
+  }
+
+  disassembleAllWireDrones(): boolean {
+    return this.disassembleWireDrone(this.state.wireDrones);
   }
 
   /** Coût (en trombones) de la prochaine Usine (valeur persistée, formule UP non fermée). */
@@ -173,23 +278,58 @@ export class LandSystem extends GameSystem {
     return this.state.clipFactoryCost;
   }
 
-  purchaseClipFactory(): boolean {
-    const s = this.state;
-    if (!s.clipFactoriesUnlocked) return false;
-    const cost = s.clipFactoryCost;
-    if (s.clips < cost) return false;
-    s.clips -= cost;
-    s.clipFactories += 1;
-    s.clipFactoryCost = baMulFloat(
-      s.clipFactoryCost,
-      getFactoryCostMultiplier(s.clipFactories),
-    );
-    return true;
+  purchaseClipFactory(qty = 1): boolean {
+    return this.buyMany(qty, () => {
+      const s = this.state;
+      if (!s.clipFactoriesUnlocked) return false;
+      const cost = s.clipFactoryCost;
+      if (s.clips < cost) return false;
+      s.clips -= cost;
+      s.clipFactories += 1;
+      s.clipFactoryCost = baMulFloat(
+        s.clipFactoryCost,
+        getFactoryCostMultiplier(s.clipFactories),
+      );
+      return true;
+    });
+  }
+
+  disassembleClipFactory(qty = 1): boolean {
+    return this.sellMany(qty, () => {
+      const s = this.state;
+      if (s.clipFactories < 1) return false;
+      const multiplier = getFactoryCostMultiplier(s.clipFactories);
+      const lastPaid = baMulFloat(s.clipFactoryCost, 1 / multiplier);
+      s.clipFactoryCost = lastPaid;
+      s.clips += lastPaid;
+      s.clipFactories -= 1;
+      if (s.clipFactories === 0) {
+        s.clipFactoryCost = INITIAL_CLIP_FACTORY_COST;
+      }
+      return true;
+    });
+  }
+
+  disassembleAllClipFactories(): boolean {
+    return this.disassembleClipFactory(this.state.clipFactories);
   }
 
   /** Taille de l'essaim (nombre total de drones), base de la génération de cadeaux. */
   getSwarmSize(): number {
     return Math.floor(this.state.harvesterDrones + this.state.wireDrones);
+  }
+
+  /**
+   * Statut UP de l'essaim pour l'UI.
+   * Priorité : lonely → noPower → bored → disorganized → active.
+   */
+  getSwarmStatus(): SwarmStatus {
+    const s = this.state;
+    if (this.getSwarmSize() < 2) return "lonely";
+    if (s.powMod <= 0) return "noPower";
+    if (s.boredomActive) return "bored";
+    if (s.disorgActive) return "disorganized";
+    return "active";
   }
 
   /** Positionne le curseur Travail (0) ⟷ Réflexion (100), révélé par Informatique en essaim. */
@@ -308,7 +448,7 @@ export class LandSystem extends GameSystem {
    * UP : (200-sliderPos)/100). sliderPos reste à 0 (donc facteur ×2) tant
    * que l'Informatique en essaim n'est pas débloquée.
    */
-  private getWorkFactor(): number {
+  getWorkFactor(): number {
     return (200 - this.state.sliderPos) / 100;
   }
 
@@ -320,6 +460,72 @@ export class LandSystem extends GameSystem {
    */
   private getBoostMultiplier(boost: number, count: number): number {
     return boost > 1 ? boost * count : 1;
+  }
+
+  /** Débit de récolte (g/s) aux conditions courantes. */
+  getMatterRate(): number {
+    const s = this.state;
+    if (!s.harvesterDronesUnlocked || s.harvesterDrones <= 0) return 0;
+    return (
+      s.harvesterDrones *
+      this.getBoostMultiplier(s.droneBoost, s.harvesterDrones) *
+      MATTER_PER_HARVESTER_DRONE *
+      s.droneEfficiencyBonus *
+      s.powMod *
+      this.getWorkFactor()
+    );
+  }
+
+  /** Débit de filage (pouces/s) aux conditions courantes. */
+  getWireRate(): number {
+    const s = this.state;
+    if (!s.wireDronesUnlocked || s.wireDrones <= 0) return 0;
+    return (
+      s.wireDrones *
+      this.getBoostMultiplier(s.droneBoost, s.wireDrones) *
+      WIRE_PER_WIRE_DRONE *
+      s.droneEfficiencyBonus *
+      s.powMod *
+      this.getWorkFactor()
+    );
+  }
+
+  /** Débit des usines (trombones/s) aux conditions courantes. */
+  getFactoryClipRate(): number {
+    const s = this.state;
+    if (!s.clipFactoriesUnlocked || s.clipFactories <= 0) return 0;
+    return (
+      s.clipFactories *
+      this.getBoostMultiplier(s.factoryBoost, s.clipFactories) *
+      CLIPS_PER_FACTORY *
+      s.factoryEfficiencyBonus *
+      s.powMod
+    );
+  }
+
+  /**
+   * Remet l'infrastructure terrestre à zéro (effet Exploration spatiale).
+   * Conserve les déblocages et les cadeaux d'essaim.
+   */
+  dismantleEarthInfrastructure(): void {
+    const s = this.state;
+    s.solarFarms = 0;
+    s.batteries = 0;
+    s.storedPower = 0;
+    s.power = 0;
+    s.harvesterDrones = 0;
+    s.wireDrones = 0;
+    s.clipFactories = 0;
+    s.clipFactoryCost = INITIAL_CLIP_FACTORY_COST;
+    s.acquiredMatter = 0n;
+    s.wire = 0n;
+    s.powMod = 0;
+    s.sliderPos = 0;
+    s.boredomLevel = 0;
+    s.boredomActive = false;
+    s.disorgCounter = 0;
+    s.disorgActive = false;
+    s.giftBits = 0;
   }
 
   override update(deltaMs: number): void {
@@ -355,19 +561,10 @@ export class LandSystem extends GameSystem {
       s.powMod = 1;
     }
 
-    const workFactor = this.getWorkFactor();
-
     if (s.harvesterDronesUnlocked) {
-      const harvestRate =
-        s.harvesterDrones *
-        this.getBoostMultiplier(s.droneBoost, s.harvesterDrones) *
-        MATTER_PER_HARVESTER_DRONE *
-        s.droneEfficiencyBonus *
-        s.powMod *
-        workFactor;
       const harvested = baApplyRate(
         s.availableMatter,
-        harvestRate,
+        this.getMatterRate(),
         dt,
         this.harvestFrac,
       );
@@ -380,16 +577,9 @@ export class LandSystem extends GameSystem {
       // Hypothèse (non documentée telle quelle par le wiki) : 1 g de matière
       // acquise produit 1 pouce de fil, la matière acquise est donc bien la
       // ressource limitante de cette conversion.
-      const wireRate =
-        s.wireDrones *
-        this.getBoostMultiplier(s.droneBoost, s.wireDrones) *
-        WIRE_PER_WIRE_DRONE *
-        s.droneEfficiencyBonus *
-        s.powMod *
-        workFactor;
       const converted = baApplyRate(
         s.acquiredMatter,
-        wireRate,
+        this.getWireRate(),
         dt,
         this.wireFrac,
       );
@@ -399,17 +589,9 @@ export class LandSystem extends GameSystem {
     }
 
     if (s.clipFactoriesUnlocked) {
-      // Contrairement aux drones, la formule UP n'applique pas le facteur
-      // Travail/Réflexion (sliderPos) à la production des usines.
-      const factoryOutputRate =
-        s.clipFactories *
-        this.getBoostMultiplier(s.factoryBoost, s.clipFactories) *
-        CLIPS_PER_FACTORY *
-        s.factoryEfficiencyBonus *
-        s.powMod;
       const produced = baApplyRate(
         s.wire,
-        factoryOutputRate,
+        this.getFactoryClipRate(),
         dt,
         this.factoryFrac,
       );
@@ -422,5 +604,25 @@ export class LandSystem extends GameSystem {
     if (s.swarmComputingUnlocked) {
       this.updateSwarm(dt);
     }
+  }
+
+  private buyMany(qty: number, buyOne: () => boolean): boolean {
+    const n = Math.max(0, Math.floor(qty));
+    let bought = 0;
+    for (let i = 0; i < n; i += 1) {
+      if (!buyOne()) break;
+      bought += 1;
+    }
+    return bought > 0;
+  }
+
+  private sellMany(qty: number, sellOne: () => boolean): boolean {
+    const n = Math.max(0, Math.floor(qty));
+    let sold = 0;
+    for (let i = 0; i < n; i += 1) {
+      if (!sellOne()) break;
+      sold += 1;
+    }
+    return sold > 0;
   }
 }

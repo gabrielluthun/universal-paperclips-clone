@@ -575,4 +575,92 @@ describe("LandSystem", () => {
       expect(state.powMod).toBe(1);
     });
   });
+
+  describe("achats bulk et désassemblage", () => {
+    it("achète jusqu'à qty drones et s'arrête si les fonds manquent", () => {
+      const state = GameState.createInitial();
+      state.harvesterDronesUnlocked = true;
+      // Coûts : 1M + ~4.76M + ~11.84M ≈ 17.6M — fonds pour exactement 2
+      state.clips = 6_000_000n;
+      const land = new LandSystem(state);
+
+      expect(land.purchaseHarvesterDrone(10)).toBe(true);
+      expect(state.harvesterDrones).toBe(2);
+      expect(state.clips).toBeLessThan(land.getNextHarvesterDroneCost());
+    });
+
+    it("désassemble un drone en remboursant le coût de la dernière unité", () => {
+      const state = GameState.createInitial();
+      state.harvesterDronesUnlocked = true;
+      state.clips = 10_000_000n;
+      const land = new LandSystem(state);
+
+      expect(land.purchaseHarvesterDrone()).toBe(true);
+      const afterBuy = state.clips;
+      expect(land.disassembleHarvesterDrone()).toBe(true);
+      expect(state.harvesterDrones).toBe(0);
+      expect(state.clips).toBe(afterBuy + 1_000_000n);
+    });
+
+    it("désassemble une usine en restaurant le coût précédent", () => {
+      const state = GameState.createInitial();
+      state.clipFactoriesUnlocked = true;
+      state.clips = 100_000_000n;
+      const land = new LandSystem(state);
+
+      expect(land.purchaseClipFactory()).toBe(true);
+      expect(state.clipFactories).toBe(1);
+      expect(state.clipFactoryCost).toBe(1_000_000_000n); // ×10
+      expect(land.disassembleClipFactory()).toBe(true);
+      expect(state.clipFactories).toBe(0);
+      expect(state.clipFactoryCost).toBe(100_000_000n);
+      expect(state.clips).toBe(100_000_000n);
+    });
+  });
+
+  describe("débits et statut essaim", () => {
+    it("expose les débits matière/fil/usines cohérents avec update", () => {
+      const state = GameState.createInitial();
+      state.powerGridUnlocked = true;
+      state.harvesterDronesUnlocked = true;
+      state.wireDronesUnlocked = true;
+      state.clipFactoriesUnlocked = true;
+      state.solarFarms = 20;
+      state.harvesterDrones = 5;
+      state.wireDrones = 5;
+      state.clipFactories = 1;
+      state.powMod = 1;
+      state.wire = 10_000_000_000n;
+      state.acquiredMatter = 10_000_000_000n;
+      const land = new LandSystem(state);
+
+      expect(land.getMatterRate()).toBe(5 * 26_180_337 * 2);
+      expect(land.getWireRate()).toBe(5 * 16_180_339 * 2);
+      expect(land.getFactoryClipRate()).toBe(1_000_000_000);
+    });
+
+    it("signale lonely / noPower / bored / disorganized / active", () => {
+      const state = GameState.createInitial();
+      state.swarmComputingUnlocked = true;
+      state.powMod = 1;
+      const land = new LandSystem(state);
+
+      expect(land.getSwarmStatus()).toBe("lonely");
+
+      state.harvesterDrones = 2;
+      state.powMod = 0;
+      expect(land.getSwarmStatus()).toBe("noPower");
+
+      state.powMod = 1;
+      state.boredomActive = true;
+      expect(land.getSwarmStatus()).toBe("bored");
+
+      state.boredomActive = false;
+      state.disorgActive = true;
+      expect(land.getSwarmStatus()).toBe("disorganized");
+
+      state.disorgActive = false;
+      expect(land.getSwarmStatus()).toBe("active");
+    });
+  });
 });
