@@ -61,8 +61,8 @@ export class LandPanel {
     this.dronePowerRatio.textContent = `${NumberFormatter.formatInteger(
       land.getPowerRatio() * 100,
     )}\u00A0%`;
-    this.availableMatter.textContent = `${NumberFormatter.formatInteger(state.availableMatter)}\u00A0g`;
-    this.acquiredMatter.textContent = `${NumberFormatter.formatInteger(state.acquiredMatter)}\u00A0g`;
+    this.availableMatter.textContent = `${NumberFormatter.formatCompact(state.availableMatter)}\u00A0g`;
+    this.acquiredMatter.textContent = `${NumberFormatter.formatCompact(state.acquiredMatter)}\u00A0g`;
 
     this.harvesterDrones.textContent = NumberFormatter.formatInteger(
       state.harvesterDrones,
