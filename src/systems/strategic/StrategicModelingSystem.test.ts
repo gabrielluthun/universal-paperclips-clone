@@ -83,16 +83,29 @@ describe("StrategicModelingSystem", () => {
     expect(state.yomi).toBe(gained);
   });
 
-  it("refuse un tournoi dès la phase 2, même bien approvisionné", () => {
+  it("autorise toujours un tournoi en phase 2 (seul Trust devient obsolète, pas Yomi)", () => {
     const state = GameState.createInitial();
     state.strategicModelingUnlocked = true;
+    state.unlockedStrategyIds = ["A100", "B100"];
+    state.selectedStrategyId = "A100";
     state.ops = 5000;
+    state.tourneyCost = 1000;
     state.phase = 2;
     const strategic = new StrategicModelingSystem(state);
 
-    expect(strategic.canRunTournament()).toBe(false);
-    expect(strategic.runTournament()).toBe(0);
-    expect(state.ops).toBe(5000);
+    let n = 0;
+    const random = () => {
+      n += 1;
+      if (n === 1) return 0.99; // aa = 10
+      if (n === 2) return 0.01; // ab ≈ 1
+      if (n === 3) return 0.01; // ba ≈ 1
+      if (n === 4) return 0.2; // bb = 2
+      return 0.5; // labels
+    };
+
+    expect(strategic.canRunTournament()).toBe(true);
+    expect(strategic.runTournament(random)).toBeGreaterThan(0);
+    expect(state.ops).toBe(4000);
   });
 
   it("ajoute une stratégie et augmente le coût", () => {

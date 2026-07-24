@@ -60,11 +60,15 @@ export class StrategicModelingSystem extends GameSystem {
     return true;
   }
 
-  /** Les tournois ne se lancent plus une fois la phase 1 close. */
+  /**
+   * Les tournois restent jouables en phase 2 : dans le jeu original, seul
+   * Trust devient obsolète (consommé par « Release the HypnoDrones »), pas
+   * la modélisation stratégique ni le Yomi (utile ensuite pour l'Informatique
+   * en essaim).
+   */
   canRunTournament(): boolean {
     const s = this.state;
     return (
-      s.phase === 1 &&
       s.strategicModelingUnlocked &&
       s.unlockedStrategyIds.length > 0 &&
       s.ops >= s.tourneyCost
