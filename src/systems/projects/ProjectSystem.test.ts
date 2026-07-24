@@ -237,6 +237,29 @@ describe("ProjectSystem", () => {
     expect(state.clipFactoriesUnlocked).toBe(true);
   });
 
+  it("phase 2 : Informatique en essaim débloquée à partir de 200 drones", () => {
+    const state = GameState.createInitial();
+    state.phase = 2;
+    state.clips = PROJECTS_UNLOCK_CLIPS;
+    state.yomi = 12_000;
+    state.harvesterDrones = 100;
+    state.wireDrones = 99;
+    const projects = new ProjectSystem(state);
+
+    // 199 drones : pas encore assez.
+    expect(projects.getAvailableProjects().map((p) => p.id)).not.toContain(
+      "swarmComputing",
+    );
+
+    state.wireDrones = 100;
+    expect(projects.getAvailableProjects().map((p) => p.id)).toContain(
+      "swarmComputing",
+    );
+    expect(projects.activateProject("swarmComputing")).toBe(true);
+    expect(state.yomi).toBe(0);
+    expect(state.swarmComputingUnlocked).toBe(true);
+  });
+
   it("les projets phase 2 restent invisibles en phase 1", () => {
     const state = GameState.createInitial();
     state.clips = PROJECTS_UNLOCK_CLIPS;
