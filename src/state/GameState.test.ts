@@ -133,6 +133,20 @@ describe("GameState", () => {
     ).toBeUndefined();
   });
 
+  it("migre une save v9 en initialisant le coût persisté de l'Usine", () => {
+    const v9Save = {
+      version: 9,
+      phase: 2,
+      clipFactories: 3,
+    };
+
+    const restored = GameState.fromSavedData(v9Save);
+
+    expect(restored.version).toBe(SAVE_VERSION);
+    expect(restored.clipFactories).toBe(3);
+    expect(restored.clipFactoryCost).toBe(100_000_000);
+  });
+
   it("rejette une sauvegarde sans version exploitable (donnée illisible)", () => {
     const restored = GameState.fromSavedData({ clips: 9999 });
     expect(restored.clips).toBe(0);
