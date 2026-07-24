@@ -34,5 +34,15 @@ export function createPhase2Projects(): Project[] {
         s.powerGridUnlocked = true;
       },
     ),
+    new ConfigurableProject(
+      "nanoscaleWireProduction",
+      "Production de fil à l'échelle nanométrique",
+      "Technique de conversion de la matière première en fil.",
+      ProjectCost.of({ ops: 35_000 }),
+      (s) => done(s, "powerGrid"),
+      (s) => {
+        s.nanoscaleWireUnlocked = true;
+      },
+    ),
   ];
 }
