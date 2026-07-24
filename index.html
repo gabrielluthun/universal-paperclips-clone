@@ -372,6 +372,35 @@
           </button>
         </section>
 
+        <section class="panel" id="panel-land-swarm" hidden>
+          <h2>Informatique en essaim</h2>
+          <div class="row">
+            <span>Taille de l'essaim</span>
+            <span class="value" id="swarm-size">0</span>
+          </div>
+          <div class="row">
+            <span>Cadeaux de calcul</span>
+            <span class="value" id="swarm-gifts">0</span>
+          </div>
+          <div class="row">
+            <label for="swarm-slider">Travail ⟷ Réflexion</label>
+            <input type="range" id="swarm-slider" min="0" max="100" value="0" />
+            <span class="value" id="swarm-slider-value">0&nbsp;%</span>
+          </div>
+          <p id="swarm-boredom-warning" class="mt-2 text-[0.9em]" hidden>
+            L'essaim s'ennuie (plus de matière à récolter).
+          </p>
+          <button id="btn-entertain-swarm" type="button" hidden>
+            Distraire l'essaim (<span id="entertain-swarm-cost">10&nbsp;000</span>&nbsp;créat.)
+          </button>
+          <p id="swarm-disorg-warning" class="mt-2 text-[0.9em]" hidden>
+            L'essaim est désorganisé (déséquilibre récolteurs/fileurs).
+          </p>
+          <button id="btn-synch-swarm" type="button" hidden>
+            Synchroniser l'essaim (<span id="synch-swarm-cost">5&nbsp;000</span>&nbsp;yomi)
+          </button>
+        </section>
+
       </main>
 
       <main class="mt-3.5 grid grid-cols-1 gap-3.5">

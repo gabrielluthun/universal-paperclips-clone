@@ -58,6 +58,36 @@ export class LandPanel {
     "btn-buy-clip-factory",
   );
 
+  private readonly swarmPanel = requireElement<HTMLElement>(
+    "panel-land-swarm",
+  );
+  private readonly swarmSize = requireElement<HTMLSpanElement>("swarm-size");
+  private readonly swarmGifts =
+    requireElement<HTMLSpanElement>("swarm-gifts");
+  private readonly swarmSlider =
+    requireElement<HTMLInputElement>("swarm-slider");
+  private readonly swarmSliderValue = requireElement<HTMLSpanElement>(
+    "swarm-slider-value",
+  );
+  private readonly boredomWarning = requireElement<HTMLElement>(
+    "swarm-boredom-warning",
+  );
+  private readonly btnEntertainSwarm = requireElement<HTMLButtonElement>(
+    "btn-entertain-swarm",
+  );
+  private readonly entertainSwarmCost = requireElement<HTMLSpanElement>(
+    "entertain-swarm-cost",
+  );
+  private readonly disorgWarning = requireElement<HTMLElement>(
+    "swarm-disorg-warning",
+  );
+  private readonly btnSynchSwarm = requireElement<HTMLButtonElement>(
+    "btn-synch-swarm",
+  );
+  private readonly synchSwarmCost = requireElement<HTMLSpanElement>(
+    "synch-swarm-cost",
+  );
+
   render(model: RenderModel): void {
     const { state, land } = model;
 
@@ -122,5 +152,32 @@ export class LandPanel {
     this.clipFactoryCost.textContent =
       NumberFormatter.formatInteger(factoryCost);
     this.btnBuyClipFactory.disabled = state.clips < factoryCost;
+
+    this.swarmPanel.hidden = !state.swarmComputingUnlocked;
+    if (!state.swarmComputingUnlocked) return;
+
+    this.swarmSize.textContent = NumberFormatter.formatInteger(
+      land.getSwarmSize(),
+    );
+    this.swarmGifts.textContent = NumberFormatter.formatInteger(
+      state.swarmGifts,
+    );
+    if (document.activeElement !== this.swarmSlider) {
+      this.swarmSlider.value = String(state.sliderPos);
+    }
+    this.swarmSliderValue.textContent = `${NumberFormatter.formatInteger(state.sliderPos)}\u00A0%`;
+
+    this.boredomWarning.hidden = !state.boredomActive;
+    this.btnEntertainSwarm.hidden = !state.boredomActive;
+    const entertainCost = land.getEntertainSwarmCost();
+    this.entertainSwarmCost.textContent =
+      NumberFormatter.formatInteger(entertainCost);
+    this.btnEntertainSwarm.disabled = state.creativity < entertainCost;
+
+    this.disorgWarning.hidden = !state.disorgActive;
+    this.btnSynchSwarm.hidden = !state.disorgActive;
+    const synchCost = land.getSynchSwarmCost();
+    this.synchSwarmCost.textContent = NumberFormatter.formatInteger(synchCost);
+    this.btnSynchSwarm.disabled = state.yomi < synchCost;
   }
 }
