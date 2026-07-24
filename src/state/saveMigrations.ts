@@ -21,6 +21,9 @@ export type SaveMigration = (
  * v6 → v7 : introduction de la phase 2 (Terre). Les vieilles saves n'ont
  * aucun de ces champs ; on les injecte avec leurs valeurs par défaut neutres
  * (`createLandFields()`), sans toucher au reste de la progression.
+ *
+ * v7 → v8 : scinde l'ancien champ unique `matter` en `availableMatter`
+ * (stock terrestre initial) et `acquiredMatter` (matière récoltée).
  */
 export const SAVE_MIGRATIONS: Record<number, SaveMigration> = {
   6: (data) => ({
@@ -28,6 +31,18 @@ export const SAVE_MIGRATIONS: Record<number, SaveMigration> = {
     ...createLandFields(),
     version: 7,
   }),
+  7: (data) => {
+    const legacyMatter =
+      typeof data.matter === "number" ? data.matter : 0;
+    const { matter: _removed, ...rest } = data;
+    return {
+      ...rest,
+      availableMatter: Math.pow(10, 24) * 6000,
+      // L'ancien `matter` représentait le stock récolté (toujours 0 en pratique).
+      acquiredMatter: legacyMatter,
+      version: 8,
+    };
+  },
 };
 
 /**

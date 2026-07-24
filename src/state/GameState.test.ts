@@ -61,7 +61,7 @@ describe("GameState", () => {
     expect(restored.clips).toBe(123_456_789);
   });
 
-  it("migre une save v6 (fin de phase 1) vers v7 en ajoutant les champs de phase 2 avec leurs défauts", () => {
+  it("migre une save v6 (fin de phase 1) jusqu'à la version courante avec les champs de phase 2", () => {
     const v6Save = {
       version: 6,
       phase: 2,
@@ -86,6 +86,29 @@ describe("GameState", () => {
     expect(restored.wireDrones).toBe(0);
     expect(restored.clipFactories).toBe(0);
     expect(restored.phase2Complete).toBe(false);
+    expect(restored.availableMatter).toBe(Math.pow(10, 24) * 6000);
+    expect(restored.acquiredMatter).toBe(0);
+  });
+
+  it("migre une save v7 en scindant matter → availableMatter / acquiredMatter", () => {
+    const v7Save = {
+      version: 7,
+      phase: 2,
+      solarFarms: 2,
+      matter: 1234,
+      powerGridUnlocked: true,
+    };
+
+    const restored = GameState.fromSavedData(v7Save);
+
+    expect(restored.version).toBe(SAVE_VERSION);
+    expect(restored.solarFarms).toBe(2);
+    expect(restored.powerGridUnlocked).toBe(true);
+    expect(restored.availableMatter).toBe(Math.pow(10, 24) * 6000);
+    expect(restored.acquiredMatter).toBe(1234);
+    expect(
+      (restored as unknown as { matter?: number }).matter,
+    ).toBeUndefined();
   });
 
   it("rejette une sauvegarde sans version exploitable (donnée illisible)", () => {

@@ -2,15 +2,16 @@ import type { GameState } from "../../state/GameState";
 import { GameSystem } from "../core/GameSystem";
 
 /**
- * Constantes d'équilibrage de la phase 2. Le jeu original ne publie pas ses
- * formules internes de simulation (cf. réserve du plan) — ces valeurs sont
- * un équilibrage original, cohérent avec la progression documentée, pas une
- * rétro-ingénierie exacte.
+ * Constantes phase 2 issues du source original Universal Paperclips
+ * (`globals.js` / `main.js`) : coûts et production électrique documentés.
  */
-const BASE_SOLAR_FARM_COST = 1_000_000;
-const SOLAR_FARM_COST_GROWTH = 1.05;
-/** Puissance générée par ferme solaire (MW). */
-const POWER_PER_SOLAR_FARM = 100;
+/** Coût de la première ferme (farmLevel = 0). */
+const INITIAL_SOLAR_FARM_COST = 10_000_000;
+/** Exposant et facteur de la formule UP : (n+1)^2.78 × 1e8 pour n ≥ 1. */
+const SOLAR_FARM_COST_EXPONENT = 2.78;
+const SOLAR_FARM_COST_FACTOR = 100_000_000;
+/** Puissance générée par ferme solaire (MW) — farmRate = 50 dans UP. */
+const POWER_PER_SOLAR_FARM = 50;
 
 /**
  * Système de simulation de la phase 2 (Terre) : grid électrique, drones,
@@ -22,12 +23,14 @@ export class LandSystem extends GameSystem {
     super(state);
   }
 
-  /** Coût (en trombones) de la prochaine Ferme solaire. */
+  /**
+   * Coût (en trombones) de la prochaine Ferme solaire.
+   * Formule UP : 10M à 0 ferme, puis Math.pow(solarFarms+1, 2.78)*1e8.
+   */
   getNextSolarFarmCost(): number {
-    return Math.floor(
-      BASE_SOLAR_FARM_COST *
-        Math.pow(SOLAR_FARM_COST_GROWTH, this.state.solarFarms),
-    );
+    const owned = this.state.solarFarms;
+    if (owned === 0) return INITIAL_SOLAR_FARM_COST;
+    return Math.pow(owned + 1, SOLAR_FARM_COST_EXPONENT) * SOLAR_FARM_COST_FACTOR;
   }
 
   purchaseSolarFarm(): boolean {

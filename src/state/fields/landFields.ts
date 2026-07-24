@@ -19,8 +19,13 @@ export interface LandFields {
   powerBanked: number;
 
   // --- Drones & fil ---
-  /** Matière première récoltée, en stock. */
-  matter: number;
+  /**
+   * Matière terrestre encore disponible à récolter (Available Matter).
+   * Départ : 6 × 10^27 g (6 octillions), comme dans UP.
+   */
+  availableMatter: number;
+  /** Matière déjà récoltée, prête à être convertie en fil (Acquired Matter). */
+  acquiredMatter: number;
   harvesterDrones: number;
   wireDrones: number;
   /** Multiplicateur cumulatif d'efficacité des drones (vols en essaim). */
@@ -55,7 +60,8 @@ export function createLandFields(): LandFields {
     power: 0,
     powerBanked: 0,
 
-    matter: 0,
+    availableMatter: Math.pow(10, 24) * 6000,
+    acquiredMatter: 0,
     harvesterDrones: 0,
     wireDrones: 0,
     droneEfficiencyBonus: 1,

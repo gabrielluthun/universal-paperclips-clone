@@ -23,7 +23,7 @@ import { applyMigrations, SAVE_MIGRATIONS } from "./saveMigrations";
  * entrée dans `SAVE_MIGRATIONS` (voir `saveMigrations.ts`) pour que les
  * sauvegardes existantes conservent leur progression au lieu d'être perdues.
  */
-export const SAVE_VERSION = 7;
+export const SAVE_VERSION = 8;
 
 /**
  * Fusion de déclarations : les champs de chaque domaine (`src/state/fields/`)
