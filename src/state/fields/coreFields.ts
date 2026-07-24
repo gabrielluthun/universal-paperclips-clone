@@ -6,8 +6,8 @@ export interface CoreFields {
   phase1Complete: boolean;
   /** L'écran de transition de fin de phase 1 a été fermé. */
   phase1EndAcknowledged: boolean;
-  clips: number;
-  unsold: number;
+  clips: bigint;
+  unsold: bigint;
   funds: number;
 }
 
@@ -16,8 +16,8 @@ export function createCoreFields(): CoreFields {
     phase: 1,
     phase1Complete: false,
     phase1EndAcknowledged: false,
-    clips: 0,
-    unsold: 0,
+    clips: 0n,
+    unsold: 0n,
     funds: 0,
   };
 }

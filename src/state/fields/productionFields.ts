@@ -1,5 +1,5 @@
 export interface ProductionFields {
-  wire: number;
+  wire: bigint;
   wirePerSpool: number;
   wireCost: number;
   wireBasePrice: number;
@@ -21,7 +21,7 @@ export interface ProductionFields {
 
 export function createProductionFields(): ProductionFields {
   return {
-    wire: 1000,
+    wire: 1000n,
     wirePerSpool: 1000,
     wireCost: 20,
     wireBasePrice: 20,

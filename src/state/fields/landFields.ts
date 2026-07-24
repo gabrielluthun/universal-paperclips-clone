@@ -38,9 +38,9 @@ export interface LandFields {
    * Matière terrestre encore disponible à récolter (Available Matter).
    * Départ : 6 × 10^27 g (6 octillions), comme dans UP.
    */
-  availableMatter: number;
+  availableMatter: bigint;
   /** Matière déjà récoltée, prête à être convertie en fil (Acquired Matter). */
-  acquiredMatter: number;
+  acquiredMatter: bigint;
   harvesterDrones: number;
   wireDrones: number;
   /**
@@ -64,7 +64,7 @@ export interface LandFields {
    * n'est pas une fonction pure du nombre d'usines : chaque achat multiplie
    * le coût courant par un facteur dépendant du palier atteint.
    */
-  clipFactoryCost: number;
+  clipFactoryCost: bigint;
   /**
    * Multiplicateur cumulatif du taux de production par usine (×100 puis
    * ×1000 avec Usines améliorées et Hypervéloces — factoryRate dans UP).
@@ -117,15 +117,15 @@ export function createLandFields(): LandFields {
     powMod: 0,
     sliderPos: 0,
 
-    availableMatter: Math.pow(10, 24) * 6000,
-    acquiredMatter: 0,
+    availableMatter: 6n * 10n ** 27n,
+    acquiredMatter: 0n,
     harvesterDrones: 0,
     wireDrones: 0,
     droneEfficiencyBonus: 1,
     droneBoost: 1,
 
     clipFactories: 0,
-    clipFactoryCost: 100_000_000,
+    clipFactoryCost: 100_000_000n,
     factoryEfficiencyBonus: 1,
     factoryBoost: 1,
 
