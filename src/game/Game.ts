@@ -13,6 +13,7 @@ import { Renderer } from "../ui/Renderer";
 import { TitleScreen } from "../ui/TitleScreen";
 import { ComputeController } from "./controllers/ComputeController";
 import { InvestmentsController } from "./controllers/InvestmentsController";
+import { LandController } from "./controllers/LandController";
 import { MarketController } from "./controllers/MarketController";
 import { PhaseController } from "./controllers/PhaseController";
 import { ProductionController } from "./controllers/ProductionController";
@@ -153,6 +154,7 @@ export class Game {
     new InvestmentsController(this.investments).bind();
     new StrategicController(this.strategic).bind();
     new QuantumController(this.quantum).bind();
+    new LandController(this.land).bind();
     new PhaseController(() => this.acknowledgePhase1End()).bind();
     this.lifecycle.bindResetButton();
   }

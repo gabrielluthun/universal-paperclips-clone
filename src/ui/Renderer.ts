@@ -3,6 +3,7 @@ import type { RenderModel } from "./RenderModel";
 import { BusinessPanel } from "./panels/BusinessPanel";
 import { ComputePanel } from "./panels/ComputePanel";
 import { InvestmentsPanel } from "./panels/InvestmentsPanel";
+import { LandPanel } from "./panels/LandPanel";
 import { PhasePanel } from "./panels/PhasePanel";
 import { ProjectsPanel } from "./panels/ProjectsPanel";
 import { QuantumPanel } from "./panels/QuantumPanel";
@@ -18,6 +19,7 @@ export class Renderer {
   private readonly strategic = new StrategicPanel();
   private readonly investments = new InvestmentsPanel();
   private readonly quantum = new QuantumPanel();
+  private readonly land = new LandPanel();
   private readonly projects = new ProjectsPanel();
 
   render(model: RenderModel): void {
@@ -28,6 +30,7 @@ export class Renderer {
     this.strategic.render(model);
     this.investments.render(model);
     this.quantum.render(model);
+    this.land.render(model);
     this.projects.render(model);
   }
 }

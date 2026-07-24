@@ -1,6 +1,7 @@
 import type { GameState } from "../state/GameState";
 import type { ComputeSystem } from "../systems/compute/ComputeSystem";
 import type { InvestmentSystem } from "../systems/invest/InvestmentSystem";
+import type { LandSystem } from "../systems/land/LandSystem";
 import type { ProductionSystem } from "../systems/production/ProductionSystem";
 import type { ProjectSystem } from "../systems/projects/ProjectSystem";
 import type { QuantumSystem } from "../systems/quantum/QuantumSystem";
@@ -17,6 +18,7 @@ export interface RenderModel {
   readonly investments: InvestmentSystem;
   readonly strategic: StrategicModelingSystem;
   readonly quantum: QuantumSystem;
+  readonly land: LandSystem;
   readonly clipRate: number;
   readonly avgRev: number;
   activateProject(id: string): void;
