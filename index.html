@@ -89,359 +89,361 @@
         </button>
       </header>
 
-      <main
-        class="mt-3.5 grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] items-start gap-3.5"
-      >
-        <section class="panel" id="panel-business">
-          <h2>Affaires</h2>
-          <div class="row">
-            <span>Fonds</span>
-            <span class="value" id="funds">0,00&nbsp;$</span>
-          </div>
-          <div class="row">
-            <span>Revenus moy. / s</span>
-            <span class="value" id="avg-rev">0,00&nbsp;$</span>
-          </div>
-          <div class="row">
-            <span>Stock invendu</span>
-            <span class="value" id="unsold">0</span>
-          </div>
-          <div class="row">
-            <span>Prix de vente (unité)</span>
-            <span class="price-controls">
-              <button id="btn-price-down" type="button" title="Baisser le prix">−</button>
-              <span class="value" id="price">0,25&nbsp;$</span>
-              <button id="btn-price-up" type="button" title="Augmenter le prix">+</button>
-            </span>
-          </div>
-          <div class="row">
-            <span>Demande du public</span>
-            <span class="value" id="demand">0&nbsp;%</span>
-          </div>
-          <button id="btn-marketing" type="button">
-            Marketing (niv. <span id="marketing-lvl">1</span>) —
-            <span id="marketing-cost">100,00&nbsp;$</span>
-          </button>
-        </section>
-
-        <section class="panel" id="panel-manufacturing">
-          <h2>Fabrication</h2>
-          <div class="row">
-            <span>Trombones / s</span>
-            <span class="value" id="clip-rate">0</span>
-          </div>
-          <div class="row">
-            <span>Fil</span>
-            <span class="value" id="wire">0&nbsp;cm</span>
-          </div>
-          <button id="btn-buy-wire" type="button">
-            Acheter une bobine de fil (<span id="wire-cost">20,00&nbsp;$</span>)
-          </button>
-          <div
-            id="autoclipper-block"
-            class="mt-2.5 border-t border-dashed border-line pt-1.5"
-            hidden
-          >
+      <main class="panels-board mt-3.5">
+        <div class="panels-col" id="col-left">
+          <section class="panel" id="panel-business">
+            <h2>Affaires</h2>
             <div class="row">
-              <span>AutoTrombineuses</span>
-              <span class="value" id="autoclippers">0</span>
+              <span>Fonds</span>
+              <span class="value" id="funds">0,00&nbsp;$</span>
             </div>
-            <button id="btn-buy-autoclipper" type="button" class="mt-2 w-full">
-              Acheter une AutoTrombineuse (<span id="autoclipper-cost">6,00&nbsp;$</span>)
-            </button>
-          </div>
-          <div
-            id="megaclipper-block"
-            class="mt-2.5 border-t border-dashed border-line pt-1.5"
-            hidden
-          >
             <div class="row">
-              <span>MégaTrombineuses</span>
-              <span class="value" id="megaclippers">0</span>
+              <span>Revenus moy. / s</span>
+              <span class="value" id="avg-rev">0,00&nbsp;$</span>
             </div>
-            <button id="btn-buy-megaclipper" type="button" class="mt-2 w-full">
-              Acheter une MégaTrombineuse (<span id="megaclipper-cost">1&nbsp;000,00&nbsp;$</span>)
+            <div class="row">
+              <span>Stock invendu</span>
+              <span class="value" id="unsold">0</span>
+            </div>
+            <div class="row">
+              <span>Prix de vente (unité)</span>
+              <span class="price-controls">
+                <button id="btn-price-down" type="button" title="Baisser le prix">−</button>
+                <span class="value" id="price">0,25&nbsp;$</span>
+                <button id="btn-price-up" type="button" title="Augmenter le prix">+</button>
+              </span>
+            </div>
+            <div class="row">
+              <span>Demande du public</span>
+              <span class="value" id="demand">0&nbsp;%</span>
+            </div>
+            <button id="btn-marketing" type="button">
+              Marketing (niv. <span id="marketing-lvl">1</span>) —
+              <span id="marketing-cost">100,00&nbsp;$</span>
             </button>
-          </div>
-        </section>
+          </section>
 
-        <section class="panel" id="panel-compute">
-          <h2>Ressources de calcul</h2>
-          <div class="row">
-            <span>Confiance</span>
-            <span class="value">
-              <span id="trust">2</span>
-              <span class="text-[0.9em] text-muted"
-                >(dispo. <span id="trust-unused">0</span>)</span
-              >
-            </span>
-          </div>
-          <div class="row">
-            <span>Prochain palier</span>
-            <span class="value" id="next-trust">3&nbsp;000</span>
-          </div>
-          <div class="row">
-            <span>Processeurs</span>
-            <span class="value">
-              <span id="processors">1</span>
-              <button
-                id="btn-add-processor"
-                type="button"
-                class="btn-inline"
-                title="Allouer 1 confiance"
-              >
-                +
-              </button>
-            </span>
-          </div>
-          <div class="row">
-            <span>Mémoire</span>
-            <span class="value">
-              <span id="memory">1</span>
-              <button
-                id="btn-add-memory"
-                type="button"
-                class="btn-inline"
-                title="Allouer 1 confiance"
-              >
-                +
-              </button>
-            </span>
-          </div>
-          <div class="row">
-            <span>Opérations</span>
-            <span class="value"
-              ><span id="ops">0</span> / <span id="ops-max">1&nbsp;000</span></span
+          <section class="panel" id="panel-manufacturing">
+            <h2>Fabrication</h2>
+            <div class="row">
+              <span>Trombones / s</span>
+              <span class="value" id="clip-rate">0</span>
+            </div>
+            <div class="row">
+              <span>Fil</span>
+              <span class="value" id="wire">0&nbsp;cm</span>
+            </div>
+            <button id="btn-buy-wire" type="button">
+              Acheter une bobine de fil (<span id="wire-cost">20,00&nbsp;$</span>)
+            </button>
+            <div
+              id="autoclipper-block"
+              class="mt-2.5 border-t border-dashed border-line pt-1.5"
+              hidden
             >
-          </div>
-          <div class="row" id="creativity-row" hidden>
-            <span>Créativité</span>
-            <span class="value" id="creativity">0</span>
-          </div>
-        </section>
-
-        <section class="panel" id="panel-strategic" hidden>
-          <h2>Modélisation stratégique</h2>
-          <div class="row">
-            <span>Yomi</span>
-            <span class="value" id="strategic-yomi">0</span>
-          </div>
-          <div class="row">
-            <span>Coût tournoi</span>
-            <span class="value"
-              ><span id="tourney-cost">1&nbsp;000</span>&nbsp;ops</span
+              <div class="row">
+                <span>AutoTrombineuses</span>
+                <span class="value" id="autoclippers">0</span>
+              </div>
+              <button id="btn-buy-autoclipper" type="button" class="mt-2 w-full">
+                Acheter une AutoTrombineuse (<span id="autoclipper-cost">6,00&nbsp;$</span>)
+              </button>
+            </div>
+            <div
+              id="megaclipper-block"
+              class="mt-2.5 border-t border-dashed border-line pt-1.5"
+              hidden
             >
-          </div>
-          <label class="row" for="strat-picker">
-            <span>Stratégie</span>
-            <select id="strat-picker" class="strat-picker"></select>
-          </label>
-          <button id="btn-run-tourney" type="button">Lancer le tournoi</button>
-          <div id="tourney-grid" class="tourney-grid" hidden>
-            <p class="text-[0.85em] text-muted mb-1">
-              <span id="tourney-label-a">A</span>
-              &nbsp;/&nbsp;
-              <span id="tourney-label-b">B</span>
+              <div class="row">
+                <span>MégaTrombineuses</span>
+                <span class="value" id="megaclippers">0</span>
+              </div>
+              <button id="btn-buy-megaclipper" type="button" class="mt-2 w-full">
+                Acheter une MégaTrombineuse (<span id="megaclipper-cost">1&nbsp;000,00&nbsp;$</span>)
+              </button>
+            </div>
+          </section>
+
+          <section class="panel" id="panel-land-factories" hidden>
+            <h2>Usines</h2>
+            <div class="row">
+              <span>Usines à trombones</span>
+              <span class="value" id="clip-factories">0</span>
+            </div>
+            <button id="btn-buy-clip-factory" type="button">
+              Acheter une Usine (<span id="clip-factory-cost">100&nbsp;000&nbsp;000</span>)
+            </button>
+          </section>
+
+          <section class="panel" id="panel-land-drones" hidden>
+            <h2>Drones</h2>
+            <div class="row">
+              <span>Puissance utilisée</span>
+              <span class="value" id="drone-power-ratio">100&nbsp;%</span>
+            </div>
+            <div class="row">
+              <span>Matière disponible</span>
+              <span class="value" id="available-matter">0&nbsp;g</span>
+            </div>
+            <div class="row">
+              <span>Matière acquise</span>
+              <span class="value" id="acquired-matter">0&nbsp;g</span>
+            </div>
+            <div class="row">
+              <span>Fil</span>
+              <span class="value" id="land-wire">0&nbsp;cm</span>
+            </div>
+            <div class="row">
+              <span>Drones récolteurs</span>
+              <span class="value" id="harvester-drones">0</span>
+            </div>
+            <button id="btn-buy-harvester-drone" type="button">
+              Acheter un Drone récolteur (<span id="harvester-drone-cost">1&nbsp;000&nbsp;000</span>)
+            </button>
+            <div class="row mt-2">
+              <span>Drones fileurs</span>
+              <span class="value" id="wire-drones">0</span>
+            </div>
+            <button id="btn-buy-wire-drone" type="button">
+              Acheter un Drone fileur (<span id="wire-drone-cost">1&nbsp;000&nbsp;000</span>)
+            </button>
+            <p class="mt-2 text-[0.9em] text-muted">
+              Ratio recommandé : environ 1,618 Drone fileur par Drone récolteur.
             </p>
-            <table class="payoff-table">
-              <thead>
-                <tr>
-                  <th></th>
-                  <th id="payoff-h-a">A</th>
-                  <th id="payoff-h-b">B</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <th id="payoff-v-a">A</th>
-                  <td id="payoff-aa">—</td>
-                  <td id="payoff-ab">—</td>
-                </tr>
-                <tr>
-                  <th id="payoff-v-b">B</th>
-                  <td id="payoff-ba">—</td>
-                  <td id="payoff-bb">—</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div id="tourney-results" class="tourney-results" hidden>
-            <p class="text-[0.85em] text-muted">
-              Dernier gain :
-              <span class="value" id="tourney-yomi-gained">0</span>&nbsp;Yomi
+          </section>
+        </div>
+
+        <div class="panels-col" id="col-center">
+          <section class="panel" id="panel-compute">
+            <h2>Ressources de calcul</h2>
+            <div class="row">
+              <span>Confiance</span>
+              <span class="value">
+                <span id="trust">2</span>
+                <span class="text-[0.9em] text-muted"
+                  >(dispo. <span id="trust-unused">0</span>)</span
+                >
+              </span>
+            </div>
+            <div class="row">
+              <span>Prochain palier</span>
+              <span class="value" id="next-trust">3&nbsp;000</span>
+            </div>
+            <div class="row">
+              <span>Processeurs</span>
+              <span class="value">
+                <span id="processors">1</span>
+                <button
+                  id="btn-add-processor"
+                  type="button"
+                  class="btn-inline"
+                  title="Allouer 1 confiance"
+                >
+                  +
+                </button>
+              </span>
+            </div>
+            <div class="row">
+              <span>Mémoire</span>
+              <span class="value">
+                <span id="memory">1</span>
+                <button
+                  id="btn-add-memory"
+                  type="button"
+                  class="btn-inline"
+                  title="Allouer 1 confiance"
+                >
+                  +
+                </button>
+              </span>
+            </div>
+            <div class="row">
+              <span>Opérations</span>
+              <span class="value"
+                ><span id="ops">0</span> / <span id="ops-max">1&nbsp;000</span></span
+              >
+            </div>
+            <div class="row" id="creativity-row" hidden>
+              <span>Créativité</span>
+              <span class="value" id="creativity">0</span>
+            </div>
+          </section>
+
+          <section class="panel" id="panel-quantum" hidden>
+            <h2>Informatique quantique</h2>
+            <div class="row">
+              <span>Puces photoniques</span>
+              <span class="value" id="qchips">0</span>
+            </div>
+            <button id="btn-buy-qchip" type="button">
+              Acheter une puce (<span id="qchip-cost">10&nbsp;000</span> ops)
+            </button>
+            <button id="btn-qcompute" type="button">
+              Calcul quantique
+            </button>
+            <p class="mt-2 text-[0.9em] text-muted" id="qcompute-hint">
+              Achetez au moins une puce, puis lancez le calcul : les ops oscillent.
+              Cliquez à nouveau pour figer la valeur.
             </p>
-            <ol id="tourney-results-list" class="tourney-results-list"></ol>
-          </div>
-        </section>
+          </section>
 
-        <section class="panel" id="panel-investments" hidden>
-          <h2>Investissements</h2>
-          <div class="row">
-            <span>Portefeuille</span>
-            <span class="value" id="invest-funds">0,00&nbsp;$</span>
-          </div>
-          <div class="row">
-            <span>Dernière variation</span>
-            <span class="value" id="invest-delta">0,00&nbsp;$</span>
-          </div>
-          <div class="row">
-            <span>Moteur (niv.)</span>
-            <span class="value" id="invest-engine">1</span>
-          </div>
-          <div class="row">
-            <span>Yomi</span>
-            <span class="value" id="yomi">0</span>
-          </div>
-          <div class="row">
-            <span>Risque</span>
-            <span class="price-controls" id="risk-controls">
-              <button id="btn-risk-low" type="button" title="Risque faible">F</button>
-              <button id="btn-risk-med" type="button" title="Risque moyen">M</button>
-              <button id="btn-risk-high" type="button" title="Risque élevé">É</button>
-            </span>
-          </div>
-          <div class="row">
-            <span>Niveau de risque</span>
-            <span class="value" id="invest-risk">Faible</span>
-          </div>
-          <button id="btn-invest-deposit" type="button">Tout déposer</button>
-          <button id="btn-invest-withdraw" type="button">Tout retirer</button>
-          <button id="btn-upgrade-engine" type="button">
-            Améliorer le moteur (<span id="invest-upgrade-cost">100</span>&nbsp;Yomi)
-          </button>
-        </section>
+          <section class="panel" id="panel-projects" hidden>
+            <h2>Projets</h2>
+            <div id="projects-list" class="grid grid-cols-1 gap-2">
+              <p class="text-[0.9em] text-muted" id="projects-empty">
+                Aucun projet disponible pour l’instant.
+              </p>
+            </div>
+          </section>
+        </div>
 
-        <section class="panel" id="panel-quantum" hidden>
-          <h2>Informatique quantique</h2>
-          <div class="row">
-            <span>Puces photoniques</span>
-            <span class="value" id="qchips">0</span>
-          </div>
-          <button id="btn-buy-qchip" type="button">
-            Acheter une puce (<span id="qchip-cost">10&nbsp;000</span> ops)
-          </button>
-          <button id="btn-qcompute" type="button">
-            Calcul quantique
-          </button>
-          <p class="mt-2 text-[0.9em] text-muted" id="qcompute-hint">
-            Achetez au moins une puce, puis lancez le calcul : les ops oscillent.
-            Cliquez à nouveau pour figer la valeur.
-          </p>
-        </section>
+        <div class="panels-col" id="col-right">
+          <section class="panel" id="panel-strategic" hidden>
+            <h2>Modélisation stratégique</h2>
+            <div class="row">
+              <span>Yomi</span>
+              <span class="value" id="strategic-yomi">0</span>
+            </div>
+            <div class="row">
+              <span>Coût tournoi</span>
+              <span class="value"
+                ><span id="tourney-cost">1&nbsp;000</span>&nbsp;ops</span
+              >
+            </div>
+            <label class="row" for="strat-picker">
+              <span>Stratégie</span>
+              <select id="strat-picker" class="strat-picker"></select>
+            </label>
+            <button id="btn-run-tourney" type="button">Lancer le tournoi</button>
+            <div id="tourney-grid" class="tourney-grid" hidden>
+              <p class="text-[0.85em] text-muted mb-1">
+                <span id="tourney-label-a">A</span>
+                &nbsp;/&nbsp;
+                <span id="tourney-label-b">B</span>
+              </p>
+              <table class="payoff-table">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th id="payoff-h-a">A</th>
+                    <th id="payoff-h-b">B</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th id="payoff-v-a">A</th>
+                    <td id="payoff-aa">—</td>
+                    <td id="payoff-ab">—</td>
+                  </tr>
+                  <tr>
+                    <th id="payoff-v-b">B</th>
+                    <td id="payoff-ba">—</td>
+                    <td id="payoff-bb">—</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="tourney-results" class="tourney-results" hidden>
+              <p class="text-[0.85em] text-muted">
+                Dernier gain :
+                <span class="value" id="tourney-yomi-gained">0</span>&nbsp;Yomi
+              </p>
+              <ol id="tourney-results-list" class="tourney-results-list"></ol>
+            </div>
+          </section>
 
-        <section class="panel" id="panel-land-energy" hidden>
-          <h2>Énergie</h2>
-          <div class="row">
-            <span>Fermes solaires</span>
-            <span class="value" id="solar-farms">0</span>
-          </div>
-          <div class="row">
-            <span>Puissance</span>
-            <span class="value" id="power-output">0&nbsp;MW</span>
-          </div>
-          <button id="btn-buy-solar-farm" type="button">
-            Acheter une Ferme solaire (<span id="solar-farm-cost">1&nbsp;000&nbsp;000</span>)
-          </button>
-          <div class="row mt-2">
-            <span>Batteries</span>
-            <span class="value" id="batteries">0</span>
-          </div>
-          <div class="row">
-            <span>Énergie stockée</span>
-            <span class="value" id="stored-power">0&nbsp;/&nbsp;0&nbsp;MW·s</span>
-          </div>
-          <button id="btn-buy-battery" type="button">
-            Acheter une Batterie (<span id="battery-cost">1&nbsp;000&nbsp;000</span>)
-          </button>
-        </section>
+          <section class="panel" id="panel-investments" hidden>
+            <h2>Investissements</h2>
+            <div class="row">
+              <span>Portefeuille</span>
+              <span class="value" id="invest-funds">0,00&nbsp;$</span>
+            </div>
+            <div class="row">
+              <span>Dernière variation</span>
+              <span class="value" id="invest-delta">0,00&nbsp;$</span>
+            </div>
+            <div class="row">
+              <span>Moteur (niv.)</span>
+              <span class="value" id="invest-engine">1</span>
+            </div>
+            <div class="row">
+              <span>Yomi</span>
+              <span class="value" id="yomi">0</span>
+            </div>
+            <div class="row">
+              <span>Risque</span>
+              <span class="price-controls" id="risk-controls">
+                <button id="btn-risk-low" type="button" title="Risque faible">F</button>
+                <button id="btn-risk-med" type="button" title="Risque moyen">M</button>
+                <button id="btn-risk-high" type="button" title="Risque élevé">É</button>
+              </span>
+            </div>
+            <div class="row">
+              <span>Niveau de risque</span>
+              <span class="value" id="invest-risk">Faible</span>
+            </div>
+            <button id="btn-invest-deposit" type="button">Tout déposer</button>
+            <button id="btn-invest-withdraw" type="button">Tout retirer</button>
+            <button id="btn-upgrade-engine" type="button">
+              Améliorer le moteur (<span id="invest-upgrade-cost">100</span>&nbsp;Yomi)
+            </button>
+          </section>
 
-        <section class="panel" id="panel-land-drones" hidden>
-          <h2>Drones</h2>
-          <div class="row">
-            <span>Puissance utilisée</span>
-            <span class="value" id="drone-power-ratio">100&nbsp;%</span>
-          </div>
-          <div class="row">
-            <span>Matière disponible</span>
-            <span class="value" id="available-matter">0&nbsp;g</span>
-          </div>
-          <div class="row">
-            <span>Matière acquise</span>
-            <span class="value" id="acquired-matter">0&nbsp;g</span>
-          </div>
-          <div class="row">
-            <span>Drones récolteurs</span>
-            <span class="value" id="harvester-drones">0</span>
-          </div>
-          <button id="btn-buy-harvester-drone" type="button">
-            Acheter un Drone récolteur (<span id="harvester-drone-cost">1&nbsp;000&nbsp;000</span>)
-          </button>
-          <div class="row mt-2">
-            <span>Drones fileurs</span>
-            <span class="value" id="wire-drones">0</span>
-          </div>
-          <button id="btn-buy-wire-drone" type="button">
-            Acheter un Drone fileur (<span id="wire-drone-cost">1&nbsp;000&nbsp;000</span>)
-          </button>
-          <p class="mt-2 text-[0.9em] text-muted">
-            Ratio recommandé : environ 1,618 Drone fileur par Drone récolteur.
-          </p>
-        </section>
+          <section class="panel" id="panel-land-energy" hidden>
+            <h2>Énergie</h2>
+            <div class="row">
+              <span>Fermes solaires</span>
+              <span class="value" id="solar-farms">0</span>
+            </div>
+            <div class="row">
+              <span>Puissance</span>
+              <span class="value" id="power-output">0&nbsp;MW</span>
+            </div>
+            <button id="btn-buy-solar-farm" type="button">
+              Acheter une Ferme solaire (<span id="solar-farm-cost">1&nbsp;000&nbsp;000</span>)
+            </button>
+            <div class="row mt-2">
+              <span>Batteries</span>
+              <span class="value" id="batteries">0</span>
+            </div>
+            <div class="row">
+              <span>Énergie stockée</span>
+              <span class="value" id="stored-power">0&nbsp;/&nbsp;0&nbsp;MW·s</span>
+            </div>
+            <button id="btn-buy-battery" type="button">
+              Acheter une Batterie (<span id="battery-cost">1&nbsp;000&nbsp;000</span>)
+            </button>
+          </section>
 
-        <section class="panel" id="panel-land-factories" hidden>
-          <h2>Usines</h2>
-          <div class="row">
-            <span>Usines à trombones</span>
-            <span class="value" id="clip-factories">0</span>
-          </div>
-          <button id="btn-buy-clip-factory" type="button">
-            Acheter une Usine (<span id="clip-factory-cost">100&nbsp;000&nbsp;000</span>)
-          </button>
-        </section>
-
-        <section class="panel" id="panel-land-swarm" hidden>
-          <h2>Informatique en essaim</h2>
-          <div class="row">
-            <span>Taille de l'essaim</span>
-            <span class="value" id="swarm-size">0</span>
-          </div>
-          <div class="row">
-            <span>Cadeaux de calcul</span>
-            <span class="value" id="swarm-gifts">0</span>
-          </div>
-          <div class="row">
-            <label for="swarm-slider">Travail ⟷ Réflexion</label>
-            <input type="range" id="swarm-slider" min="0" max="100" value="0" />
-            <span class="value" id="swarm-slider-value">0&nbsp;%</span>
-          </div>
-          <p id="swarm-boredom-warning" class="mt-2 text-[0.9em]" hidden>
-            L'essaim s'ennuie (plus de matière à récolter).
-          </p>
-          <button id="btn-entertain-swarm" type="button" hidden>
-            Distraire l'essaim (<span id="entertain-swarm-cost">10&nbsp;000</span>&nbsp;créat.)
-          </button>
-          <p id="swarm-disorg-warning" class="mt-2 text-[0.9em]" hidden>
-            L'essaim est désorganisé (déséquilibre récolteurs/fileurs).
-          </p>
-          <button id="btn-synch-swarm" type="button" hidden>
-            Synchroniser l'essaim (<span id="synch-swarm-cost">5&nbsp;000</span>&nbsp;yomi)
-          </button>
-        </section>
-
-      </main>
-
-      <main class="mt-3.5 grid grid-cols-1 gap-3.5">
-        <section class="panel" id="panel-projects" hidden>
-          <h2>Projets</h2>
-          <div
-            id="projects-list"
-            class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3"
-          >
-            <p class="col-span-full text-[0.9em] text-muted" id="projects-empty">
-              Aucun projet disponible pour l’instant.
+          <section class="panel" id="panel-land-swarm" hidden>
+            <h2>Informatique en essaim</h2>
+            <div class="row">
+              <span>Taille de l'essaim</span>
+              <span class="value" id="swarm-size">0</span>
+            </div>
+            <div class="row">
+              <span>Cadeaux de calcul</span>
+              <span class="value" id="swarm-gifts">0</span>
+            </div>
+            <div class="row">
+              <label for="swarm-slider">Travail ⟷ Réflexion</label>
+              <input type="range" id="swarm-slider" min="0" max="100" value="0" />
+              <span class="value" id="swarm-slider-value">0&nbsp;%</span>
+            </div>
+            <p id="swarm-boredom-warning" class="mt-2 text-[0.9em]" hidden>
+              L'essaim s'ennuie (plus de matière à récolter).
             </p>
-          </div>
-        </section>
+            <button id="btn-entertain-swarm" type="button" hidden>
+              Distraire l'essaim (<span id="entertain-swarm-cost">10&nbsp;000</span>&nbsp;créat.)
+            </button>
+            <p id="swarm-disorg-warning" class="mt-2 text-[0.9em]" hidden>
+              L'essaim est désorganisé (déséquilibre récolteurs/fileurs).
+            </p>
+            <button id="btn-synch-swarm" type="button" hidden>
+              Synchroniser l'essaim (<span id="synch-swarm-cost">5&nbsp;000</span>&nbsp;yomi)
+            </button>
+          </section>
+        </div>
       </main>
 
       <footer
